@@ -38,10 +38,10 @@ def main() -> None:
     High-level orchestration of the Vortex setup workflow.
 
     Steps:
-    1. Detect the bottles CLI.
-    2. Create the Vortex bottle if it does not yet exist.
-    3. Enumerate installed Steam/GOG games.
-    4. Register those games inside the bottle.
+    1. Enumerate installed Steam/GOG games.
+    2. Detect if the user is using Bottles or WINE.
+    3. Create the Vortex prefix(es) if non-existant.
+    4. Register the games inside the prefix.
     5. Ensure Vortex is installed; otherwise download & install it.
     """
 
