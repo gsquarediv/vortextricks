@@ -192,7 +192,7 @@ def install_wine() -> None:
     if shutil.which("dnf"):
         run(["sudo", "dnf", "install", "wine-core.x86_64", "wine-common", "wine-mono", "wine-fonts", "wine-pulseaudio"], check=True)
     else:
-        RuntimeError("Could not locate bottles-cli or wine")
+        raise RuntimeError("Could not locate bottles-cli or wine")
 
 def find_vortex_prefix() -> pathlib.Path:
     if 'WINEPREFIX' not in os.environ:
