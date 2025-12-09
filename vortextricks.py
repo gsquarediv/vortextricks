@@ -6,7 +6,7 @@ import pathlib
 import shutil
 import subprocess
 from enum import Enum
-from typing import Dict, Optional, Tuple
+from typing import Optional
 
 import requests
 import vdf
@@ -73,7 +73,7 @@ def main() -> None:
         if duplicates:
             steam_games, gog_games, bottle_names = handle_duplicates(duplicates, steam_games, gog_games, wine_command)
             bottles_path = get_bottles_path(wine_command)
-            prefixes: Dict[Store, pathlib.Path] = {
+            prefixes: dict[Store, pathlib.Path] = {
                 store: bottles_path / bottle_names[store] for store in [Store.STEAM, Store.GOG]
             }
         else:
@@ -416,9 +416,9 @@ def fix_bottles_permissions() -> None:
     run(["flatpak", "override", "--user", "com.usebottles.bottles", "--filesystem=~/Games/Heroic"], check=True)
 
 def find_duplicate_games(
-    steam_games: Dict[str, InstalledGame],
-    gog_games:   Dict[str, InstalledGame]
-) -> Dict[str, Tuple[Optional[str], Optional[str]]]:
+    steam_games: dict[str, InstalledGame],
+    gog_games:   dict[str, InstalledGame]
+) -> dict[str, tuple[Optional[str], Optional[str]]]:
     """
     Detect games that appear in **both** the Steam and GOG libraries.
 
@@ -430,13 +430,13 @@ def find_duplicate_games(
     # ----------------------------------------------------------
     # 1. Build app‑id → GameInfo maps (skip unknown IDs)
     # ----------------------------------------------------------
-    steam_appid_to_info: Dict[str, gameinfo.GameInfo] = {}
+    steam_appid_to_info: dict[str, gameinfo.GameInfo] = {}
     for app_id in steam_games:
         gi = game_registry.get_game_by_id(app_id)
         if gi is not None:            # `gi` is guaranteed to be a GameInfo
             steam_appid_to_info[app_id] = gi
 
-    gog_appid_to_info: Dict[str, gameinfo.GameInfo] = {}
+    gog_appid_to_info: dict[str, gameinfo.GameInfo] = {}
     for app_id in gog_games:
         gi = game_registry.get_game_by_id(app_id)
         if gi is not None:
@@ -445,11 +445,11 @@ def find_duplicate_games(
     # ----------------------------------------------------------
     # 2. Canonical game_id → app‑id maps
     # ----------------------------------------------------------
-    steam_id_to_appid: Dict[str, str] = {}
+    steam_id_to_appid: dict[str, str] = {}
     for app_id, gi in steam_appid_to_info.items():
         steam_id_to_appid[gi.game_id] = app_id
 
-    gog_id_to_appid: Dict[str, str] = {}
+    gog_id_to_appid: dict[str, str] = {}
     for app_id, gi in gog_appid_to_info.items():
         gog_id_to_appid[gi.game_id] = app_id
 
@@ -461,7 +461,7 @@ def find_duplicate_games(
     # ----------------------------------------------------------
     # 4. Build the result mapping
     # ----------------------------------------------------------
-    duplicates: Dict[str, Tuple[Optional[str], Optional[str]]] = {}
+    duplicates: dict[str, tuple[Optional[str], Optional[str]]] = {}
     for cid in common_ids:
         duplicates[cid] = (
             steam_id_to_appid.get(cid),
@@ -471,11 +471,11 @@ def find_duplicate_games(
     return duplicates
 
 def handle_duplicates(
-    duplicates: Dict[str, Tuple[Optional[str], Optional[str]]],
-    steam_games: Dict[str, InstalledGame],
-    gog_games:   Dict[str, InstalledGame],
+    duplicates: dict[str, tuple[Optional[str], Optional[str]]],
+    steam_games: dict[str, InstalledGame],
+    gog_games:   dict[str, InstalledGame],
     wine_command: list[str]
-) -> Tuple[Dict[str, InstalledGame], Dict[str, InstalledGame], Dict[Store, str]]:
+) -> tuple[dict[str, InstalledGame], dict[str, InstalledGame], dict[Store, str]]:
     """
     Ask the user how to resolve each duplicate game.
 
@@ -495,7 +495,7 @@ def handle_duplicates(
     bottle_names : dict
         Mapping Store -> bottle name (default "Vortex").
     """
-    bottle_names: Dict[Store, str] = {Store.STEAM: "Vortex", Store.GOG: "Vortex"}
+    bottle_names: dict[Store, str] = {Store.STEAM: "Vortex", Store.GOG: "Vortex"}
     separate_bottles = False
 
     for canonical_id, (steam_appid, gog_appid) in duplicates.items():

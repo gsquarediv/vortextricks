@@ -4,7 +4,7 @@ import logging
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Optional
 
 # Configure module logger
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class GameInfo:
 
 
 # === Known games ===
-GAMES: Dict[str, GameInfo] = {
+GAMES: dict[str, GameInfo] = {
     "489830": GameInfo("Skyrim Special Edition", "489830", "Skyrim Special Edition"),
     "72850": GameInfo("Skyrim", "72850", "Skyrim"),
     "22330": GameInfo("Oblivion", "22330", "Oblivion"),

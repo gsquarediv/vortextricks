@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 import json
-from typing import Optional, List, Dict
+from typing import Optional
 
 # See: https://github.com/Nexus-Mods/vortex-games to get game info
 # See also: https://github.com/sonic2kk/steamtinkerlaunch/blob/master/misc/vortexgames.txt
@@ -13,7 +13,7 @@ class GameInfo:
     """Container for all known identifiers for a single game."""
     game_id: str
     nexus_domain_name: Optional[str] = None
-    steamapp_ids: List[str] = field(default_factory=list)
+    steamapp_ids: list[str] = field(default_factory=list)
     gog_id: Optional[str] = None
     ms_id: Optional[str] = None
     epic_id: Optional[str] = None
@@ -26,11 +26,11 @@ class GameRegistry:
     one mapping each Steam ID to its GameInfo, and another mapping each
     GOG ID to its GameInfo.  Lookups are O(1).
     """
-    def __init__(self, games: List[GameInfo]):
+    def __init__(self, games: list[GameInfo]):
         self._games = games
         # Build lookup tables
-        self._steam_index: Dict[str, GameInfo] = {}
-        self._gog_index: Dict[str, GameInfo] = {}
+        self._steam_index: dict[str, GameInfo] = {}
+        self._gog_index: dict[str, GameInfo] = {}
         for game in games:
             for sid in game.steamapp_ids:
                 self._steam_index[sid] = game
@@ -45,11 +45,11 @@ class GameRegistry:
         return self._steam_index.get(id) or self._gog_index.get(id)
 
     @property
-    def games(self) -> List[GameInfo]:
+    def games(self) -> list[GameInfo]:
         """Return the raw list of games."""
         return self._games
 
-def games_to_json(games: List[GameInfo]) -> str:
+def games_to_json(games: list[GameInfo]) -> str:
     return json.dumps(games, default=lambda o: o.__dict__, indent=2)
 
 def load_games_from_json(data: str) -> GameRegistry:
