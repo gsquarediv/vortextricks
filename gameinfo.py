@@ -11,6 +11,7 @@ from typing import Optional
 @dataclass
 class GameInfo:
     """Container for all known identifiers for a single game."""
+    name: str
     game_id: str
     nexus_domain_name: Optional[str] = None
     steamapp_ids: list[str] = field(default_factory=list)
@@ -18,6 +19,10 @@ class GameInfo:
     ms_id: Optional[str] = None
     epic_id: Optional[str] = None
     registry_entries: dict = field(default_factory=dict)
+
+    # symlink-specific fields
+    override_mygames: Optional[str] = None
+    override_appdata: Optional[str] = None
 
 class GameRegistry:
     """
@@ -65,6 +70,7 @@ def load_games_from_json(data: str) -> GameRegistry:
 # Example usage
 games = [
     GameInfo(
+        name = "Fallout New Vegas",
         game_id="falloutnv",
         nexus_domain_name="newvegas",
         steamapp_ids=["22380", "22490"],
@@ -73,9 +79,12 @@ games = [
         epic_id="5daeb974a22a435988892319b3a4f476",
         registry_entries={
             r"HKEY_LOCAL_MACHINE\Software\Wow6432Node\Bethesda Softworks\FalloutNV": "Installed Path"
-        }
+        },
+        override_mygames="FalloutNV",
+        override_appdata="FalloutNV"
     ),
     GameInfo(
+        name = "Skyrim Special Edition",
         game_id="skyrimse",
         steamapp_ids=["489830"],
         gog_id="1711230643",
@@ -85,5 +94,40 @@ games = [
             r"HKEY_LOCAL_MACHINE\Software\Wow6432Node\Bethesda Softworks\Skyrim Special Edition": "Installed Path"
         }
     ),
+    # TODO: Get GOG IDs and registry entries for games below here
+    GameInfo(
+        name="Skyrim",
+        game_id="skyrim",
+        steamapp_ids=["72850"],
+    ),
+    GameInfo(
+        name="Oblivion",
+        game_id="oblivion",
+        steamapp_ids=["22330"],
+    ),
+    GameInfo(
+        name="Fallout 4",
+        game_id="fallout4",
+        steamapp_ids=["377160"],
+        override_mygames="Fallout4",
+        override_appdata="Fallout4",
+    ),
+    GameInfo(
+        name="Fallout 3 GOTY",
+        game_id="fallout3goty",
+        steamapp_ids=["22370"],
+        override_mygames="Fallout3",
+        override_appdata="Fallout3",
+    ),
+    GameInfo(
+        name="Fallout 3",
+        game_id="fallout3",
+        steamapp_ids=["22300"],
+    ),
+    GameInfo(
+        name="Morrowind",
+        game_id="morrowind",
+        steamapp_ids=["22320"],
+    )
     # add more GameInfo objects here
 ]
