@@ -11,8 +11,9 @@ from typing import Optional
 import requests
 import vdf
 
-import gameinfo
 import vortex_symlink
+import gameinfo
+from gameinfo import JSON_INDENT
 
 class Store(Enum):
     STEAM = "Steam"
@@ -31,7 +32,8 @@ logging.basicConfig(
 os.environ['WINEDEBUG'] = 'fixme-all'
 
 # Build the registry
-game_registry = gameinfo.GameRegistry(gameinfo.games)
+with open('gameinfo.json', 'r', encoding='utf-8') as file:
+    game_registry = gameinfo.load_games_from_json(file.read())
 
 def main() -> None:
     """
@@ -126,9 +128,9 @@ def main() -> None:
             installer_path = download_vortex(temp_dir)
             install_vortex(wine_command, installer_path)
             shortcut_path = pathlib.Path.home() / ".local" / "share" / "applications" / "wine" / "Programs" / "Black Tree Gaming Ltd" / "Vortex.desktop"
-            with open(shortcut_path, "a", encoding="utf-8") as f:
-                f.write("Categories=Game;\n")
-                f.write("MimeType=x-scheme-handler/nxm;x-scheme-handler/nxm-protocol\n")
+            with open(shortcut_path, "a", encoding="utf-8") as file:
+                file.write("Categories=Game;\n")
+                file.write("MimeType=x-scheme-handler/nxm;x-scheme-handler/nxm-protocol\n")
             run(["sudo", "update-desktop-database"], check=False)
 
 def run(args: list[str], **kwargs) -> subprocess.CompletedProcess:
@@ -170,7 +172,7 @@ def is_existing_bottle(bottles_command: list[str], bottle_name = "Vortex") -> bo
     bottles = json.loads(run(bottles_command + ["--json", "list", "bottles"], check=True, capture_output=True).stdout)
     bottle = bottles.get(bottle_name)
     if bottle is not None:
-        logging.debug(json.dumps(bottle, indent=4))
+        logging.debug(json.dumps(bottle, indent=JSON_INDENT))
         return True
     else:
         return False
@@ -178,7 +180,7 @@ def is_existing_bottle(bottles_command: list[str], bottle_name = "Vortex") -> bo
 def create_bottle(bottles_command: list[str], bottle_name = "Vortex") -> pathlib.Path:
     fix_bottles_permissions()
     components = json.loads(run(bottles_command + ["--json", "list", "components"], check=True, capture_output=True).stdout)
-    logging.debug(json.dumps(components, indent=4))
+    logging.debug(json.dumps(components, indent=JSON_INDENT))
     runners = components.get('runners')
 
     sys_wine_entry = next(
@@ -323,7 +325,7 @@ def list_installed_steam_games(steam_path: pathlib.Path) -> dict[str, InstalledG
             except Exception:
                 continue
 
-    logging.debug(json.dumps(list(games.values()), indent=4))
+    logging.debug(json.dumps(list(games.values()), indent=JSON_INDENT))
     return moddable_games
 
 def list_installed_gog_games(heroic_path: pathlib.Path) -> dict[str, InstalledGame]:
@@ -364,7 +366,7 @@ def list_installed_gog_games(heroic_path: pathlib.Path) -> dict[str, InstalledGa
         if game:
             moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, nexus_domain_name=game.nexus_domain_name, steamapp_ids=game.steamapp_ids, gog_id=appid, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path)})
 
-    logging.debug(json.dumps(games, indent=4))
+    logging.debug(json.dumps(games, indent=JSON_INDENT))
     return moddable_games
 
 def add_registry_entry(wine_command: list[str], key: str, value: str, data: pathlib.PureWindowsPath, bottle_name = "Vortex") -> subprocess.CompletedProcess:

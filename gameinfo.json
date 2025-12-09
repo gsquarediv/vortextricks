@@ -1,0 +1,119 @@
+[
+    {
+        "name": "Fallout New Vegas",
+        "game_id": "falloutnv",
+        "nexus_domain_name": "newvegas",
+        "steamapp_ids": [
+            "22380",
+            "22490"
+        ],
+        "gog_id": "1454587428",
+        "ms_id": "BethesdaSoftworks.FalloutNewVegas",
+        "epic_id": "5daeb974a22a435988892319b3a4f476",
+        "registry_entries": {
+            "HKEY_LOCAL_MACHINE\\Software\\Wow6432Node\\Bethesda Softworks\\FalloutNV": "Installed Path"
+        },
+        "override_mygames": "FalloutNV",
+        "override_appdata": "FalloutNV"
+    },
+    {
+        "name": "Skyrim Special Edition",
+        "game_id": "skyrimse",
+        "nexus_domain_name": null,
+        "steamapp_ids": [
+            "489830"
+        ],
+        "gog_id": "1711230643",
+        "ms_id": "BethesdaSoftworks.SkyrimSE-PC",
+        "epic_id": "ac82db5035584c7f8a2c548d98c86b2c",
+        "registry_entries": {
+            "HKEY_LOCAL_MACHINE\\Software\\Wow6432Node\\Bethesda Softworks\\Skyrim Special Edition": "Installed Path"
+        },
+        "override_mygames": null,
+        "override_appdata": null
+    },
+    {
+        "name": "Skyrim",
+        "game_id": "skyrim",
+        "nexus_domain_name": null,
+        "steamapp_ids": [
+            "72850"
+        ],
+        "gog_id": null,
+        "ms_id": null,
+        "epic_id": null,
+        "registry_entries": {},
+        "override_mygames": null,
+        "override_appdata": null
+    },
+    {
+        "name": "Oblivion",
+        "game_id": "oblivion",
+        "nexus_domain_name": null,
+        "steamapp_ids": [
+            "22330"
+        ],
+        "gog_id": null,
+        "ms_id": null,
+        "epic_id": null,
+        "registry_entries": {},
+        "override_mygames": null,
+        "override_appdata": null
+    },
+    {
+        "name": "Fallout 4",
+        "game_id": "fallout4",
+        "nexus_domain_name": null,
+        "steamapp_ids": [
+            "377160"
+        ],
+        "gog_id": null,
+        "ms_id": null,
+        "epic_id": null,
+        "registry_entries": {},
+        "override_mygames": "Fallout4",
+        "override_appdata": "Fallout4"
+    },
+    {
+        "name": "Fallout 3 GOTY",
+        "game_id": "fallout3goty",
+        "nexus_domain_name": null,
+        "steamapp_ids": [
+            "22370"
+        ],
+        "gog_id": null,
+        "ms_id": null,
+        "epic_id": null,
+        "registry_entries": {},
+        "override_mygames": "Fallout3",
+        "override_appdata": "Fallout3"
+    },
+    {
+        "name": "Fallout 3",
+        "game_id": "fallout3",
+        "nexus_domain_name": null,
+        "steamapp_ids": [
+            "22300"
+        ],
+        "gog_id": null,
+        "ms_id": null,
+        "epic_id": null,
+        "registry_entries": {},
+        "override_mygames": null,
+        "override_appdata": null
+    },
+    {
+        "name": "Morrowind",
+        "game_id": "morrowind",
+        "nexus_domain_name": null,
+        "steamapp_ids": [
+            "22320"
+        ],
+        "gog_id": null,
+        "ms_id": null,
+        "epic_id": null,
+        "registry_entries": {},
+        "override_mygames": null,
+        "override_appdata": null
+    }
+]
