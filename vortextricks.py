@@ -87,8 +87,10 @@ def main() -> None:
             prefixes = {Store.STEAM: vortex_prefix, Store.GOG: vortex_prefix}
     except RuntimeError, subprocess.CalledProcessError:
         if shutil.which("wine") is None:
-            # raise RuntimeError("Could not locate bottles-cli or wine")
-            install_wine()
+            if shutil.which("dnf"):
+                command = ["sudo", "dnf", "install", "wine-core.x86_64", "wine-common", "wine-mono", "wine-fonts", "wine-pulseaudio"]
+                logging.info(f"WINE can be installed with the following command:\n{' '.join(command)}")
+            raise RuntimeError("Could not locate bottles-cli or wine")
         wine_command = ['wine']
         if duplicates:
             steam_games, gog_games, bottle_names = handle_duplicates(duplicates, steam_games, gog_games, wine_command)
@@ -109,7 +111,7 @@ def main() -> None:
     # ----------------------------------------------------------------------------------------------------- #
     # 4. Install Vortex into the prefix(es) that are used
     # ----------------------------------------------------------------------------------------------------- #
-    if "bottles-cli" in wine_command or "--command=bottles-cli" in wine_command:
+    if using_bottles(wine_command):
         bottles_path = get_bottles_path(wine_command)
         temp_dir = bottles_path.parent.joinpath("temp")
         for bottle_name in set(bottle_names.values()):
@@ -160,6 +162,10 @@ def detect_bottles() -> list[str]:
     else:
         raise RuntimeError("Could not locate bottles-cli or flatpak")
 
+def using_bottles(wine_command: list[str]) -> bool:
+    """Return whether the given command uses bottles."""
+    return "bottles-cli" in wine_command or "--command=bottles-cli" in wine_command
+
 def is_existing_bottle(bottles_command: list[str], bottle_name = "Vortex") -> bool:
     bottles = json.loads(run(bottles_command + ["--json", "list", "bottles"], check=True, capture_output=True).stdout)
     bottle = bottles.get(bottle_name)
@@ -186,13 +192,6 @@ def create_bottle(bottles_command: list[str], bottle_name = "Vortex") -> pathlib
         run(bottles_command + ["new", "--bottle-name", bottle_name, "--environment", "application"], check=True)
 
     return pathlib.Path(get_bottles_path(bottles_command)) / bottle_name
-
-def install_wine() -> None:
-    """Install Wine using dnf package manager."""
-    if shutil.which("dnf"):
-        run(["sudo", "dnf", "install", "wine-core.x86_64", "wine-common", "wine-mono", "wine-fonts", "wine-pulseaudio"], check=True)
-    else:
-        raise RuntimeError("Could not locate bottles-cli or wine")
 
 def find_vortex_prefix() -> pathlib.Path:
     if 'WINEPREFIX' not in os.environ:
@@ -369,7 +368,7 @@ def list_installed_gog_games(heroic_path: pathlib.Path) -> dict[str, InstalledGa
     return moddable_games
 
 def add_registry_entry(wine_command: list[str], key: str, value: str, data: pathlib.PureWindowsPath, bottle_name = "Vortex") -> subprocess.CompletedProcess:
-    if "bottles-cli" in wine_command or "--command=bottles-cli" in wine_command:
+    if using_bottles(wine_command):
         result = run(wine_command + ["reg", "-b", bottle_name, "-k",
                                    key, "-v", value, "-d",
                                    str(data), "-t", "REG_SZ", "add"], check=True, capture_output=True)
@@ -405,7 +404,7 @@ def download_vortex(directory: pathlib.Path) -> pathlib.Path:
     return path
 
 def install_vortex(wine_command: list[str], installer_path: pathlib.Path, bottle_name = "Vortex") -> subprocess.CompletedProcess:
-    if "bottles-cli" in wine_command or "--command=bottles-cli" in wine_command:
+    if using_bottles(wine_command):
         result = run(wine_command + ["run", "-b", bottle_name, "-e", str(installer_path)], check=True)
     else:
         result = run(wine_command + [str(installer_path), "/SILENT"], check=True)
@@ -497,7 +496,6 @@ def handle_duplicates(
         Mapping Store -> bottle name (default "Vortex").
     """
     bottle_names: Dict[Store, str] = {Store.STEAM: "Vortex", Store.GOG: "Vortex"}
-    using_bottles = "bottles-cli" in wine_command or "--command=bottles-cli" in wine_command
     separate_bottles = False
 
     for canonical_id, (steam_appid, gog_appid) in duplicates.items():
@@ -505,7 +503,7 @@ def handle_duplicates(
         print(f"  1) Use Steam version (AppID={steam_appid})")
         print(f"  2) Use GOG version   (AppID={gog_appid})")
         choice = ""
-        if using_bottles:
+        if using_bottles(wine_command):
             print("  3) Separate bottles for each store")
             while choice not in ("1", "2", "3"):
                 choice = input("Enter 1, 2, or 3: ").strip()
@@ -525,7 +523,7 @@ def handle_duplicates(
             separate_bottles = True
 
     # Create (or reuse) the appropriate bottles
-    if using_bottles:
+    if using_bottles(wine_command):
         if separate_bottles:
             # Create two bottles if they don't exist
             for store, bottle_name in [(Store.STEAM, "Vortex-Steam"),
