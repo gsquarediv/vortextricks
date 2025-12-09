@@ -177,7 +177,7 @@ def is_existing_bottle(bottles_command: list[str], bottle_name = "Vortex") -> bo
     else:
         return False
 
-def create_bottle(bottles_command: list[str], bottle_name = "Vortex") -> pathlib.Path:
+def create_bottle(bottles_command: list[str], bottle_name: str = "Vortex") -> pathlib.Path:
     fix_bottles_permissions()
     components = json.loads(run(bottles_command + ["--json", "list", "components"], check=True, capture_output=True).stdout)
     logging.debug(json.dumps(components, indent=JSON_INDENT))
@@ -221,14 +221,14 @@ def find_heroic() -> pathlib.Path | None:
     if pathlib.Path.exists(path):
         return path
 
-def create_wine_prefix(proton_path = None) -> None:
+def create_wine_prefix(proton_path: str | None = None) -> subprocess.CompletedProcess:
     os.makedirs(os.environ['WINEPREFIX'], exist_ok=True)
     if proton_path is None:
-        run(["wineboot", "-u"], check=True)
+        return run(["wineboot", "-u"], check=True)
     else:
-        run([proton_path, "wineboot", "-u"], check=True)
+        return run([proton_path, "wineboot", "-u"], check=True)
 
-def configure_vortex_environment(wine_command: list[str], store: Store, library: dict[str, InstalledGame], vortex_prefix: pathlib.Path, bottle_name = "Vortex") -> None:
+def configure_vortex_environment(wine_command: list[str], store: Store, library: dict[str, InstalledGame], vortex_prefix: pathlib.Path, bottle_name: str = "Vortex") -> None:
     """
     Register the games that are already in the user's library inside the Vortex
     bottle.  `library` is the dict returned by ``list_installed_*_games`` - it
@@ -253,7 +253,7 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
         for key, value in game.registry_entries.items():
             # Convert the Unix path to a Windows‑style path that Vortex expects
             win_path = pathlib.PureWindowsPath("z:", pathlib.PurePosixPath(installed_game.game_path))
-            logging.info(f"  Adding registry entry: {key}\\{value} -> {win_path}")
+            logging.info(f"Adding registry entry: {win_path} -> {key}\\{value}")
             add_registry_entry(wine_command, key, value, win_path, bottle_name)
 
         # Create the game‑specific symlinks when we’re dealing with Steam
@@ -369,7 +369,7 @@ def list_installed_gog_games(heroic_path: pathlib.Path) -> dict[str, InstalledGa
     logging.debug(json.dumps(games, indent=JSON_INDENT))
     return moddable_games
 
-def add_registry_entry(wine_command: list[str], key: str, value: str, data: pathlib.PureWindowsPath, bottle_name = "Vortex") -> subprocess.CompletedProcess:
+def add_registry_entry(wine_command: list[str], key: str, value: str, data: pathlib.PureWindowsPath, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
     if using_bottles(wine_command):
         result = run(wine_command + ["reg", "-b", bottle_name, "-k",
                                    key, "-v", value, "-d",
@@ -405,7 +405,7 @@ def download_vortex(directory: pathlib.Path) -> pathlib.Path:
     download(download_url, path)
     return path
 
-def install_vortex(wine_command: list[str], installer_path: pathlib.Path, bottle_name = "Vortex") -> subprocess.CompletedProcess:
+def install_vortex(wine_command: list[str], installer_path: pathlib.Path, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
     if using_bottles(wine_command):
         result = run(wine_command + ["run", "-b", bottle_name, "-e", str(installer_path)], check=True)
     else:
@@ -521,7 +521,7 @@ def handle_duplicates(
             # Keep GOG entry, drop Steam
             if steam_appid in steam_games:
                 del steam_games[steam_appid]
-        elif choice == "3" and using_bottles:
+        elif choice == "3" and using_bottles(wine_command):
             separate_bottles = True
 
     # Create (or reuse) the appropriate bottles

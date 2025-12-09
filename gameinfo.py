@@ -16,11 +16,11 @@ class GameInfo:
     name: str
     game_id: str
     nexus_domain_name: Optional[str] = None
-    steamapp_ids: list[str] = field(default_factory=list)
+    steamapp_ids: list[str] = field(default_factory=list[str])
     gog_id: Optional[str] = None
     ms_id: Optional[str] = None
     epic_id: Optional[str] = None
-    registry_entries: dict = field(default_factory=dict)
+    registry_entries: dict[str, str] = field(default_factory=dict[str, str])
 
     # symlink-specific fields
     override_mygames: Optional[str] = None
