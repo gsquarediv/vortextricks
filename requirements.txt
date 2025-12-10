@@ -1,3 +1,4 @@
 requests
 vdf
 jsonschema
+protontricks

@@ -8,6 +8,7 @@ import subprocess
 from enum import Enum
 from typing import Optional
 
+import protontricks
 import requests
 import vdf
 
@@ -201,20 +202,7 @@ def find_vortex_prefix() -> pathlib.Path:
     return pathlib.Path(os.environ['WINEPREFIX'])
 
 def find_steam() -> pathlib.Path | None:
-    if 'STEAM_COMPAT_CLIENT_INSTALL_PATH' in os.environ and pathlib.Path(os.environ['STEAM_COMPAT_CLIENT_INSTALL_PATH']).exists():
-        path = pathlib.Path(os.environ['STEAM_COMPAT_CLIENT_INSTALL_PATH'])
-    else:
-        # try:
-        #     import protontricks
-        #     path = pathlib.Path(protontricks.find_steam_path()[0])
-        # except ImportError:
-            if pathlib.Path.exists(pathlib.Path.home() / '.local/share/Steam'):
-                path = pathlib.Path.home() / '.local/share/Steam'
-            elif pathlib.Path.exists(pathlib.Path.home() / '.steam/steam'):
-                path = pathlib.Path.home() / '.steam/steam'
-            else:
-                path = None
-    return path
+    return protontricks.find_steam_path()[0]
 
 def find_heroic() -> pathlib.Path | None:
     path = pathlib.Path.home() / ".var/app/com.heroicgameslauncher.hgl/config/heroic"
