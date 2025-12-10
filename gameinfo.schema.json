@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/gameinfo.schema.json",
+  "title": "Game Registry Schema",
+  "description": "Schema for the JSON list of games used by the VortexTricks project.",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "required": [
+      "name",
+      "game_id",
+      "steamapp_ids",
+      "registry_entries"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "Human-readable name of the game."
+      },
+      "game_id": {
+        "type": "string",
+        "description": "Canonical identifier used internally (e.g. `skyrimse`)."
+      },
+      "nexus_domain_name": {
+        "type": ["string", "null"],
+        "description": "Domain used for Nexus Mods (may be omitted if the game isn't on Nexus)."
+      },
+      "steamapp_ids": {
+        "type": "array",
+        "description": "One or more Steam App IDs that represent this game.",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
+      },
+      "gog_id": {
+        "type": ["string", "null"],
+        "description": "GOG ID if the game is distributed via GOG/heroic."
+      },
+      "ms_id": {
+        "type": ["string", "null"],
+        "description": "Microsoft Store ID (if any)."
+      },
+      "epic_id": {
+        "type": ["string", "null"],
+        "description": "Epic Games Store ID (if any)."
+      },
+      "registry_entries": {
+        "type": "object",
+        "description": "Windows registry entries that Vortex should create. Keys are full registry paths; values are the data string.",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "override_mygames": {
+        "type": ["string", "null"],
+        "description": "Override value for the 'My Games' folder name in Vortex. If omitted, the game folder name is used."
+      },
+      "override_appdata": {
+        "type": ["string", "null"],
+        "description": "Override value for the AppData folder name in Vortex. If omitted, the game folder name is used."
+      }
+    },
+    "additionalProperties": false
+  }
+}

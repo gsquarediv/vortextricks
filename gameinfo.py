@@ -1,7 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 import json
+import pathlib
 from typing import Optional
+
+from jsonschema import Draft7Validator, exceptions
 
 # See: https://github.com/Nexus-Mods/vortex-games to get game info
 # See also: https://github.com/sonic2kk/steamtinkerlaunch/blob/master/misc/vortexgames.txt
@@ -65,6 +68,14 @@ def load_games_from_json(data: str) -> GameRegistry:
     instance for fast lookup.  Each object in the JSON is converted to a
     GameInfo.
     """
+    schema_path = pathlib.Path(__file__).with_name("gameinfo.schema.json")
+    with schema_path.open("r", encoding="utf-8") as file:
+        schema = json.load(file)
+    validator = Draft7Validator(schema)
     objs = json.loads(data)
+    try:
+        validator.validate(objs)
+    except exceptions.ValidationError as e:
+        raise ValueError(f"gameinfo.json is invalid:\n{e.message}") from e
     games = [GameInfo(**o) for o in objs]
     return GameRegistry(games)
