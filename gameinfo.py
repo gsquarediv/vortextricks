@@ -47,12 +47,12 @@ class GameRegistry:
             if game.gog_id:
                 self._gog_index[game.gog_id] = game
 
-    def get_game_by_id(self, id: str) -> Optional[GameInfo]:
+    def get_game_by_id(self, identifier: str) -> Optional[GameInfo]:
         """
         Return the GameInfo for the given Steam app ID or GOG ID.
         If the ID is unknown, returns None.
         """
-        return self._steam_index.get(id) or self._gog_index.get(id)
+        return self._steam_index.get(identifier) or self._gog_index.get(identifier)
 
     @property
     def games(self) -> list[GameInfo]:

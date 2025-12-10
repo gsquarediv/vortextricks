@@ -33,8 +33,8 @@ logging.basicConfig(
 os.environ['WINEDEBUG'] = 'fixme-all'
 
 # Build the registry
-with open('gameinfo.json', 'r', encoding='utf-8') as file:
-    game_registry = gameinfo.load_games_from_json(file.read())
+with open('gameinfo.json', 'r', encoding='utf-8') as json_file:
+    game_registry = gameinfo.load_games_from_json(json_file.read())
 
 def main() -> None:
     """
