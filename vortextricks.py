@@ -102,7 +102,7 @@ def main() -> None:
         vortex_prefix = find_vortex_prefix()
         prefixes = {Store.STEAM: vortex_prefix, Store.GOG: vortex_prefix}
         create_wine_prefix()
-    
+
     # ----------------------------------------------------------------------------------------------------- #
     # 3. Register games inside the prefix(es)
     # ----------------------------------------------------------------------------------------------------- #
@@ -169,7 +169,7 @@ def using_bottles(wine_command: list[str]) -> bool:
     """Return whether the given command uses bottles."""
     return "bottles-cli" in wine_command or "--command=bottles-cli" in wine_command
 
-def is_existing_bottle(bottles_command: list[str], bottle_name = "Vortex") -> bool:
+def is_existing_bottle(bottles_command: list[str], bottle_name: str = "Vortex") -> bool:
     bottles = json.loads(run(bottles_command + ["--json", "list", "bottles"], check=True, capture_output=True).stdout)
     bottle = bottles.get(bottle_name)
     if bottle is not None:
@@ -310,7 +310,8 @@ def list_installed_steam_games(steam_path: pathlib.Path) -> dict[str, InstalledG
                 game = game_registry.get_game_by_id(appid)
                 if game:
                     moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, nexus_domain_name=game.nexus_domain_name, steamapp_ids=[appid], gog_id=game.gog_id, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path)})
-            except Exception:
+            except Exception as e:
+                logging.error(e)
                 continue
 
     logging.debug(json.dumps(list(games.values()), indent=JSON_INDENT))
@@ -325,8 +326,8 @@ def list_installed_gog_games(heroic_path: pathlib.Path) -> dict[str, InstalledGa
     if not gog_store_path.exists():
         raise FileNotFoundError(f"GOG installed.json not found: {gog_store_path}")
 
-    with gog_store_path.open("r", encoding="utf-8") as f:
-        data = json.load(f)
+    with gog_store_path.open("r", encoding="utf-8") as file:
+        data = json.load(file)
 
     installed_section = data.get("installed", [])
     if not isinstance(installed_section, list):
