@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.com/schemas/gameinfo.schema.json",
   "title": "Game Registry Schema",
   "description": "Schema for the JSON list of games used by the VortexTricks project.",

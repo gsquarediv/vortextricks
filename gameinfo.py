@@ -4,7 +4,7 @@ import json
 import pathlib
 from typing import Optional
 
-from jsonschema import Draft7Validator, exceptions
+from jsonschema import Draft202012Validator, ValidationError
 
 # See: https://github.com/Nexus-Mods/vortex-games to get game info
 # See also: https://github.com/sonic2kk/steamtinkerlaunch/blob/master/misc/vortexgames.txt
@@ -71,11 +71,12 @@ def load_games_from_json(data: str) -> GameRegistry:
     schema_path = pathlib.Path(__file__).with_name("gameinfo.schema.json")
     with schema_path.open("r", encoding="utf-8") as file:
         schema = json.load(file)
-    validator = Draft7Validator(schema)
-    objs = json.loads(data)
+    Draft202012Validator.check_schema(schema)
+    validator = Draft202012Validator(schema)
+    objects = json.loads(data)
     try:
-        validator.validate(objs)
-    except exceptions.ValidationError as e:
+        validator.validate(objects)
+    except ValidationError as e:
         raise ValueError(f"gameinfo.json is invalid:\n{e.message}") from e
-    games = [GameInfo(**o) for o in objs]
+    games = [GameInfo(**object) for object in objects]
     return GameRegistry(games)
