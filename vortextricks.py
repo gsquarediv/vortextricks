@@ -128,6 +128,7 @@ def main() -> None:
             temp_dir = pathlib.Path("/tmp")
             installer_path = download_vortex(temp_dir)
             install_vortex(wine_command, installer_path)
+            # Modify shortcut to add NXM mimetype for Vortex integration with web browsers on nexusmods.com
             shortcut_path = pathlib.Path.home() / ".local" / "share" / "applications" / "wine" / "Programs" / "Black Tree Gaming Ltd" / "Vortex.desktop"
             with open(shortcut_path, "a", encoding="utf-8") as file:
                 file.write("Categories=Game;\n")
@@ -419,30 +420,30 @@ def find_duplicate_games(
     """
 
     # ----------------------------------------------------------
-    # 1. Build app‑id → GameInfo maps (skip unknown IDs)
+    # 1. Build app‑id -> GameInfo maps (skip unknown IDs)
     # ----------------------------------------------------------
     steam_appid_to_info: dict[str, gameinfo.GameInfo] = {}
     for app_id in steam_games:
-        gi = game_registry.get_game_by_id(app_id)
-        if gi is not None:            # `gi` is guaranteed to be a GameInfo
-            steam_appid_to_info[app_id] = gi
+        game_info = game_registry.get_game_by_id(app_id)
+        if game_info is not None:
+            steam_appid_to_info[app_id] = game_info
 
     gog_appid_to_info: dict[str, gameinfo.GameInfo] = {}
     for app_id in gog_games:
-        gi = game_registry.get_game_by_id(app_id)
-        if gi is not None:
-            gog_appid_to_info[app_id] = gi
+        game_info = game_registry.get_game_by_id(app_id)
+        if game_info is not None:
+            gog_appid_to_info[app_id] = game_info
 
     # ----------------------------------------------------------
-    # 2. Canonical game_id → app‑id maps
+    # 2. Canonical game_id -> app‑id maps
     # ----------------------------------------------------------
     steam_id_to_appid: dict[str, str] = {}
-    for app_id, gi in steam_appid_to_info.items():
-        steam_id_to_appid[gi.game_id] = app_id
+    for app_id, game_info in steam_appid_to_info.items():
+        steam_id_to_appid[game_info.game_id] = app_id
 
     gog_id_to_appid: dict[str, str] = {}
-    for app_id, gi in gog_appid_to_info.items():
-        gog_id_to_appid[gi.game_id] = app_id
+    for app_id, game_info in gog_appid_to_info.items():
+        gog_id_to_appid[game_info.game_id] = app_id
 
     # ----------------------------------------------------------
     # 3. Find common canonical IDs
