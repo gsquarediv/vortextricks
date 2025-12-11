@@ -2,7 +2,6 @@
     {
         "name": "Fallout New Vegas",
         "game_id": "falloutnv",
-        "nexus_domain_name": "newvegas",
         "steamapp_ids": [
             "22380",
             "22490"
@@ -19,7 +18,6 @@
     {
         "name": "Skyrim Special Edition",
         "game_id": "skyrimse",
-        "nexus_domain_name": null,
         "steamapp_ids": [
             "489830"
         ],
@@ -35,84 +33,91 @@
     {
         "name": "Skyrim",
         "game_id": "skyrim",
-        "nexus_domain_name": null,
         "steamapp_ids": [
             "72850"
         ],
         "gog_id": null,
         "ms_id": null,
         "epic_id": null,
-        "registry_entries": {},
+        "registry_entries": {
+            "HKEY_LOCAL_MACHINE\\Software\\Wow6432Node\\Bethesda Softworks\\skyrim": "Installed Path"
+        },
         "override_mygames": null,
         "override_appdata": null
     },
     {
         "name": "Oblivion",
         "game_id": "oblivion",
-        "nexus_domain_name": null,
         "steamapp_ids": [
-            "22330"
+            "22330",
+            "900883"
         ],
-        "gog_id": null,
-        "ms_id": null,
+        "gog_id": "1458058109",
+        "ms_id": "BethesdaSoftworks.TESOblivion-PC",
         "epic_id": null,
-        "registry_entries": {},
+        "registry_entries": {
+            "HKEY_LOCAL_MACHINE:Software\\Wow6432Node\\Bethesda Softworks\\oblivion": "Installed Path"
+        },
         "override_mygames": null,
         "override_appdata": null
     },
     {
         "name": "Fallout 4",
         "game_id": "fallout4",
-        "nexus_domain_name": null,
         "steamapp_ids": [
             "377160"
         ],
-        "gog_id": null,
-        "ms_id": null,
-        "epic_id": null,
-        "registry_entries": {},
+        "gog_id": "1998527297",
+        "ms_id": "BethesdaSoftworks.Fallout4-PC",
+        "epic_id": "61d52ce4d09d41e48800c22784d13ae8",
+        "registry_entries": {
+            "HKEY_LOCAL_MACHINE:Software\\Wow6432Node\\Bethesda Softworks\\Fallout4": "Installed Path"
+        },
         "override_mygames": "Fallout4",
         "override_appdata": "Fallout4"
     },
     {
         "name": "Fallout 3 GOTY",
         "game_id": "fallout3goty",
-        "nexus_domain_name": null,
         "steamapp_ids": [
             "22370"
         ],
-        "gog_id": null,
+        "gog_id": "1454315831",
         "ms_id": null,
         "epic_id": null,
-        "registry_entries": {},
+        "registry_entries": {
+            "HKEY_LOCAL_MACHINE:Software\\Wow6432Node\\Bethesda Softworks\\Fallout3": "Installed Path"
+        },
         "override_mygames": "Fallout3",
         "override_appdata": "Fallout3"
     },
     {
         "name": "Fallout 3",
         "game_id": "fallout3",
-        "nexus_domain_name": null,
         "steamapp_ids": [
             "22300"
         ],
         "gog_id": null,
         "ms_id": null,
         "epic_id": null,
-        "registry_entries": {},
+        "registry_entries": {
+            "HKEY_LOCAL_MACHINE:Software\\Wow6432Node\\Bethesda Softworks\\Fallout3": "Installed Path"
+        },
         "override_mygames": null,
         "override_appdata": null
     },
     {
         "name": "Morrowind",
         "game_id": "morrowind",
-        "nexus_domain_name": null,
         "steamapp_ids": [
             "22320"
         ],
         "gog_id": null,
         "ms_id": null,
         "epic_id": null,
-        "registry_entries": {},
+        "registry_entries": {
+            "HKEY_LOCAL_MACHINE:Software\\Wow6432Node\\Bethesda Softworks\\Morrowind": "Installed Path"
+        },
         "override_mygames": null,
         "override_appdata": null
     }

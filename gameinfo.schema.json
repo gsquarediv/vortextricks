@@ -22,10 +22,6 @@
         "type": "string",
         "description": "Canonical identifier used internally (e.g. `skyrimse`)."
       },
-      "nexus_domain_name": {
-        "type": ["string", "null"],
-        "description": "Domain used for Nexus Mods (may be omitted if the game isn't on Nexus)."
-      },
       "steamapp_ids": {
         "type": "array",
         "description": "One or more Steam App IDs that represent this game.",

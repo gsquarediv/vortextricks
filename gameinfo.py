@@ -18,7 +18,6 @@ class GameInfo:
     """Container for all known identifiers for a single game."""
     name: str
     game_id: str
-    nexus_domain_name: Optional[str] = None
     steamapp_ids: list[str] = field(default_factory=list[str])
     gog_id: Optional[str] = None
     ms_id: Optional[str] = None

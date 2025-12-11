@@ -310,7 +310,7 @@ def list_installed_steam_games(steam_path: pathlib.Path) -> dict[str, InstalledG
                 }
                 game = game_registry.get_game_by_id(appid)
                 if game:
-                    moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, nexus_domain_name=game.nexus_domain_name, steamapp_ids=[appid], gog_id=game.gog_id, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path)})
+                    moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, steamapp_ids=[appid], gog_id=game.gog_id, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path)})
             except Exception as e:
                 logging.error(e)
                 continue
@@ -354,7 +354,7 @@ def list_installed_gog_games(heroic_path: pathlib.Path) -> dict[str, InstalledGa
 
         game = game_registry.get_game_by_id(appid)
         if game:
-            moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, nexus_domain_name=game.nexus_domain_name, steamapp_ids=game.steamapp_ids, gog_id=appid, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path)})
+            moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, steamapp_ids=game.steamapp_ids, gog_id=appid, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path)})
 
     logging.debug(json.dumps(games, indent=JSON_INDENT))
     return moddable_games
