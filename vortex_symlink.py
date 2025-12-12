@@ -26,7 +26,7 @@ def _safe_symlink(target: Path, link_path: Path) -> None:
             link_path.unlink(missing_ok=True)
     link_path.parent.mkdir(parents=True, exist_ok=True)
     link_path.symlink_to(target)
-    logger.info(f"Linked {link_path} -> {target}")
+    logger.info("Linked %s -> %s", link_path, target)
 
 
 def create_game_symlinks(
@@ -50,7 +50,7 @@ def create_game_symlinks(
         Linux username (used for building Vortex prefix paths).
     """
     if not game_prefix.is_dir():
-        logger.warning(f"No Proton prefix found for {game.name} at {game_prefix}")
+        logger.warning("No Proton prefix found for %s at %s", game.name, game_prefix)
         return
 
     game_user = "steamuser"  # Proton prefixes always use this by default
@@ -77,7 +77,7 @@ def create_game_symlinks(
     _safe_symlink(proton_my_games, vortex_my_games)
     _safe_symlink(proton_appdata, vortex_appdata)
 
-    logger.info(f"Symlinks successfully created for {game.name}")
+    logger.info("Symlinks successfully created for %s", game.name)
 
 
 __all__ = ["create_game_symlinks"]

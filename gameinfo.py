@@ -33,7 +33,7 @@ class GameRegistry:
     Holds a collection of GameInfo objects and provides fast lookup by
     Steam app ID or GOG ID.  The constructor builds two dictionaries:
     one mapping each Steam ID to its GameInfo, and another mapping each
-    GOG ID to its GameInfo.  Lookups are O(1).
+    GOG ID to its GameInfo.
     """
     def __init__(self, games: list[GameInfo]):
         self._games = games
@@ -59,6 +59,21 @@ class GameRegistry:
         return self._games
 
 def games_to_json(games: list[GameInfo]) -> str:
+    """
+    Serialize a list of GameInfo objects to a JSON-formatted string.
+    
+    Converts each GameInfo object to a dictionary using its __dict__ attribute,
+    then formats the output as a JSON array with indentation for readability.
+    
+    Parameters:
+        games (list[GameInfo]): List of GameInfo objects to be serialized.
+        
+    Returns:
+        str: JSON-formatted string representing the list of game information.
+        
+    Note:
+        The output conforms to the structure defined in gameinfo.schema.json.
+    """
     return json.dumps(games, default=lambda o: o.__dict__, indent=JSON_INDENT)
 
 def load_games_from_json(data: str) -> GameRegistry:
