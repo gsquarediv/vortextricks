@@ -38,9 +38,9 @@ import protontricks
 import requests
 import vdf
 
+import vortex_symlink
 import gameinfo
 from gameinfo import JSON_INDENT
-from vortex_symlink import create_game_symlinks
 
 class Store(Enum):
     """Enumeration of supported game distribution platforms.
@@ -360,7 +360,7 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
 
         # Create the game‑specific symlinks when we’re dealing with Steam
         if store == Store.STEAM:
-            create_game_symlinks(
+            vortex_symlink.create_game_symlinks(
                 game=installed_game,
                 vortex_prefix=vortex_prefix,
                 game_prefix=pathlib.Path.home() / f'.local/share/Steam/steamapps/compatdata/{app_id}/pfx',
