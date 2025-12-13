@@ -90,13 +90,13 @@ pip install -r requirements.txt
 vortextricks
 ```
 
-The script is fully interactive. It will:
+Upon execution, this script will:
 
-1. Detect Steam and Heroic.
+1. Detect Steam and GOG game libraries.
 2. Prompt you if the same title appears in both libraries.
 3. Ask whether to use the Steam copy, the GOG copy, or keep both in separate bottles.
 4. Create the necessary bottles or WINE prefixes.
-5. Register registry entries for each game.
+5. Register Windows registry entries for each game to enable auto-detection of the game path in Vortex.
 6. Create symlinks for `My Games` & `AppData`.
 7. Download and install Vortex if not present.
 
