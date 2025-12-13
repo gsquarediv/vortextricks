@@ -1,3 +1,28 @@
+"""
+gameinfo
+
+Provides data structures and helper functions for handling game metadata.
+
+This module defines:
+
+* **GameInfo** - a dataclass that stores all known identifiers for a single
+  game (Steam app IDs, GOG ID, registry entries, etc.).
+
+* **GameRegistry** - a lightweight container that indexes a list of
+  `GameInfo` objects by Steam and GOG identifiers for fast lookup.
+
+* **games_to_json** - serialises a list of `GameInfo` objects into a pretty-printed
+  JSON string.
+
+* **load_games_from_json** - validates a JSON string against
+  :file:`gameinfo.schema.json` and returns a populated `GameRegistry`.
+
+The JSON schema is located in the same directory as this module and
+ensures that the data conforms to the expected structure before it is used
+within the application.
+
+"""
+
 from __future__ import annotations
 from dataclasses import dataclass, field
 import json

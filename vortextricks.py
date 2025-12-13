@@ -1,5 +1,29 @@
 #!/usr/bin/env python3
 
+"""
+VortexTricks - Automate Vortex setup and game registration for Steam & GOG
+
+This script performs the following high-level tasks:
+
+1. **Detect installed game stores** - finds Steam and Heroic (GOG) installations.
+2. **Enumerate installed games** - builds a mapping of app-IDs to `InstalledGame` objects.
+3. **Resolve duplicate titles** - prompts the user to decide which copy of a game to keep
+   (Steam vs. GOG) and optionally creates separate Bottles bottles.
+4. **Create/locate WINE prefixes** - creates a Vortex-specific prefix when using vanilla
+   WINE or Bottles.
+5. **Register games inside Vortex** - writes registry entries and symlinks for each game.
+6. **Install Vortex** - downloads the latest release from GitHub and installs it into the
+   chosen prefix.
+
+The module relies on several helper modules:
+
+- `protontricks` - to locate the Steam installation.
+- `vdf` - to parse Steam's `libraryfolders.vdf` and `appmanifest_*.acf` files.
+- `gameinfo` - provides a registry of known games and their metadata.
+- `symlink` - handles creation of game-specific symlinks.
+- `requests` - for downloading the Vortex installer.
+"""
+
 from dataclasses import dataclass, field
 import json
 import logging
@@ -14,9 +38,9 @@ import protontricks
 import requests
 import vdf
 
-import vortex_symlink
 import gameinfo
 from gameinfo import JSON_INDENT
+from vortex_symlink import create_game_symlinks
 
 class Store(Enum):
     """Enumeration of supported game distribution platforms.
@@ -336,7 +360,7 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
 
         # Create the game‑specific symlinks when we’re dealing with Steam
         if store == Store.STEAM:
-            vortex_symlink.create_game_symlinks(
+            create_game_symlinks(
                 game=installed_game,
                 vortex_prefix=vortex_prefix,
                 game_prefix=pathlib.Path.home() / f'.local/share/Steam/steamapps/compatdata/{app_id}/pfx',

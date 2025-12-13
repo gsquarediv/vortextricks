@@ -1,3 +1,22 @@
+"""
+Utilities for creating symbolic links between a Proton prefix and a Vortex WINE
+prefix.
+
+The module defines two main helpers:
+
+* ``_safe_symlink(target, link_path)`` - Creates or replaces a symlink
+  safely, handling existing files or directories.
+* ``create_game_symlinks(game, vortex_prefix, game_prefix, username)`` - For a
+  given :class:`InstalledGame` instance, this function creates symlinks that
+  point the Vortex WINE installation to the corresponding save-game
+  (``My Games``) and ``AppData`` directories inside the Proton
+  prefix. It ensures the destination directories exist and logs
+  informative messages.
+
+These utilities are used to keep game saves and configuration files in sync
+between Proton and the Vortex WINE environment.
+"""
+
 from __future__ import annotations
 
 import logging
