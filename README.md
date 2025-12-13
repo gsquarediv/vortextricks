@@ -1,16 +1,15 @@
 # VortexTricks
 
-**Automate Vortex setup and game registration for Steam & GOG (Heroic)**
+**Automate Vortex Mod Manager setup in Linux for Steam & Heroic**
 
 VortexTricks is a lightweight, self‑contained Python utility that
 
-* Detects your Steam and GOG/Heroic installations
-* Enumerates all installed games
-* Resolves duplicate titles between the two stores
+* Detects your Steam and Heroic installations
+* Resolves duplicate titles between your Steam and GOG libraries
 * Creates the necessary WINE prefix / WINE bottles
 * Registers the games inside Vortex by adding the correct registry keys and
   creating save‑game / `AppData` symlinks
-* Downloads and installs the latest Vortex release when needed
+* Downloads and installs the latest Vortex release
 
 > **⚠️ Disclaimer** – This project is provided as-is. Use it at your own risk.
 
@@ -22,9 +21,10 @@ VortexTricks is a lightweight, self‑contained Python utility that
 2. [Prerequisites](#prerequisites)
 3. [Installation](#installation)
 4. [Usage](#usage)
-5. [Extending the Game Registry](#extending-the-game-registry)
-6. [Troubleshooting](#troubleshooting)
-7. [Contributing](#contributing)
+5. [Manual Post‑Execution Steps](#manual-postexecution-steps)
+6. [Extending the Game Registry](#extending-the-game-registry)
+7. [Troubleshooting](#troubleshooting)
+8. [Contributing](#contributing)
 
 ---
 
@@ -33,13 +33,11 @@ VortexTricks is a lightweight, self‑contained Python utility that
 | Feature | Description |
 |---------|-------------|
 | **Store detection** | Automatically locates Steam and Heroic (GOG) installations. |
-| **Game enumeration** | Builds a mapping of AppIDs → `InstalledGame` objects. |
 | **Duplicate handling** | Prompts you to decide which copy to keep or to use separate bottles. |
 | **Bottle creation** | Creates a default `Vortex` bottle, or separate ones per store, with the appropriate WINE runner. |
 | **Registry registration** | Adds the required Windows registry entries for each game into the Vortex prefix. |
 | **Symlink creation** | Links the Proton prefix’s `My Games` & `AppData` folders into the Vortex WINE prefix so that saves and settings stay in sync. |
 | **Automatic Vortex install** | Downloads the latest Vortex installer from GitHub and installs it into the chosen prefix. |
-| **Schema validation** | `gameinfo.json` is validated against `gameinfo.schema.json` before use. |
 
 ---
 
@@ -47,15 +45,16 @@ VortexTricks is a lightweight, self‑contained Python utility that
 
 | Item | Requirement | Notes |
 |------|-------------|-------|
+| **Linux** | Any | Tested with Fedora Linux 43 (KDE Plasma Desktop Edition) |
 | **Python** | 3.9+ | Tested with 3.14 |
 | **WINE / Bottles** | Required for running Windows binaries | Either vanilla WINE or Bottles (flatpak or native) |
+| **Flatpak** | Optional | If you use Bottles via Flatpak |
 | **Steam** | Optional | Game store |
 | **Heroic (GOG)** | Optional | Game store |
-| **Flatpak** | Optional | If you use Bottles via Flatpak. |
-| **`protontricks`** | pip package | Used to find Steam. |
-| **`requests`** | pip package | For downloading the Vortex installer. |
-| **`vdf`** | pip package | For parsing Steam VDF files. |
-| **`jsonschema`** | pip package | For validating `gameinfo.json`. |
+| **`protontricks`** | pip package | Used to find Steam |
+| **`requests`** | pip package | For downloading the Vortex installer |
+| **`vdf`** | pip package | For parsing Steam VDF files |
+| **`jsonschema`** | pip package | For validating `gameinfo.json` |
 
 ---
 
@@ -94,17 +93,33 @@ vortextricks
 The script is fully interactive. It will:
 
 1. Detect Steam and Heroic.
-2. List installed games.
-3. Prompt you if the same title appears in both stores.
-4. Ask whether to use the Steam copy, the GOG copy, or keep both in separate bottles.
-5. Create the necessary bottles or WINE prefixes.
-6. Register registry entries for each game.
-7. Create symlinks for `My Games` & `AppData`.
-8. Download and install Vortex if not present.
+2. Prompt you if the same title appears in both libraries.
+3. Ask whether to use the Steam copy, the GOG copy, or keep both in separate bottles.
+4. Create the necessary bottles or WINE prefixes.
+5. Register registry entries for each game.
+6. Create symlinks for `My Games` & `AppData`.
+7. Download and install Vortex if not present.
 
 ### Command‑Line Options
 
-At the moment the script has no command‑line arguments; it is intended to be run once during initial setup. If you wish to run a specific step or skip interactive prompts, you can modify the script directly.
+At the moment the script has no command‑line arguments; it is intended to be run once during initial setup.  If you wish to run a specific step or skip interactive prompts, you can modify the script directly.
+
+---
+
+## Manual Post‑Execution Steps
+
+After the script finishes, you may need to perform a few manual steps to complete the setup:
+
+- **Desktop shortcut & browser integration**  
+  - **Native WINE** – The script automatically creates a desktop shortcut for Vortex and registers the `nxm` MIME type for browser integration with [Nexus Mods](https://www.nexusmods.com/).  
+  - **Bottles** – The shortcut has to be created manually in the Bottles GUI.  Open the bottle, add a "Desktop Entry" for the Vortex executable and edit the generated `.desktop` file to include:  
+    ```bash
+    MimeType=x-scheme-handler/nxm;x-scheme-handler/nxm-protocol
+    ```  
+    > ⚠️ **Note:** Using separate Bottles for duplicate games can complicate this browser integration, so keep that in mind when deciding whether to isolate each copy in its own bottle.
+
+- **Mod staging folder**  
+  Vortex needs a staging folder where it temporarily stores mods before deploying them.  After the initial run, open Vortex and accept the default suggestion for the staging folder (or select one of your choice).  Without this, mod deployments will fail.
 
 ---
 
