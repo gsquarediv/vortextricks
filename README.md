@@ -118,6 +118,9 @@ After the script finishes, you may need to perform a few manual steps to complet
     ```  
     > ⚠️ **Note:** Using separate Bottles for duplicate games can complicate this browser integration, so keep that in mind when deciding whether to isolate each copy in its own bottle.
 
+- **Game initialization**  
+  Any game to be modded needs to be ran once before attempting to mod it.  Otherwise, missing files may cause errors in Vortex.
+
 - **Mod staging folder**  
   Vortex needs a staging folder where it temporarily stores mods before deploying them.  After the initial run, open Vortex and accept the default suggestion for the staging folder (or select one of your choice).  Without this, mod deployments will fail.
 

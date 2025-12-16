@@ -20,7 +20,7 @@ The module relies on several helper modules:
 - `protontricks` - to locate the Steam installation.
 - `vdf` - to parse Steam's `libraryfolders.vdf` and `appmanifest_*.acf` files.
 - `gameinfo` - provides a registry of known games and their metadata.
-- `symlink` - handles creation of game-specific symlinks.
+- `vortex_symlink` - handles creation of game-specific symlinks.
 - `requests` - for downloading the Vortex installer.
 """
 
@@ -65,6 +65,8 @@ class InstalledGame(gameinfo.GameInfo):
         game_path: The Path object pointing to the game's installation directory.
     """
     game_path: pathlib.Path = field(default_factory=pathlib.Path)
+
+BOTTLES_PACKAGE = 'com.usebottles.bottles'
 
 logging.basicConfig(
     level=logging.INFO,
@@ -200,7 +202,7 @@ def detect_bottles() -> list[str]:
     if shutil.which("bottles-cli") is not None:
         return ["bottles-cli"]
     elif shutil.which("flatpak") is not None:
-        bottles_command = ["flatpak", "run", "--command=bottles-cli", "com.usebottles.bottles"]
+        bottles_command = ["flatpak", "run", "--command=bottles-cli", BOTTLES_PACKAGE]
         if run(bottles_command + ["info", "health-check"], check=True, capture_output=True):
             return bottles_command
         else:
@@ -335,6 +337,8 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
     Register the games that are already in the user's library inside the Vortex
     bottle.  `library` is the dict returned by ``list_installed_*_games`` - it
     maps an app-id to an ``InstalledGame`` instance.
+    Raises:
+       ValueError:
     """
     for app_id, installed_game in library.items():
         # Look up the game metadata in the registry
@@ -363,8 +367,17 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
             vortex_symlink.create_game_symlinks(
                 game=installed_game,
                 vortex_prefix=vortex_prefix,
-                game_prefix=pathlib.Path.home() / f'.local/share/Steam/steamapps/compatdata/{app_id}/pfx',
-                username=os.environ["USER"])
+                game_prefix=pathlib.Path.home() / f'.local/share/Steam/steamapps/compatdata/{app_id}/pfx')
+        elif store == Store.GOG:
+            if installed_game.gog_id:
+                folder_name = vortex_symlink.get_sorting_title(installed_game.gog_id)
+                if folder_name:
+                    vortex_symlink.create_game_symlinks(
+                        game=installed_game,
+                        vortex_prefix=vortex_prefix,
+                        game_prefix=pathlib.Path.home() / "Games" / "Heroic" / "Prefixes" / "default" / folder_name)
+            else:
+                raise ValueError("Missing GOG ID")
 
 def list_installed_steam_games(steam_path: pathlib.Path) -> dict[str, InstalledGame]:
     """
@@ -423,7 +436,7 @@ def list_installed_steam_games(steam_path: pathlib.Path) -> dict[str, InstalledG
                 }
                 game = game_registry.get_game_by_id(appid)
                 if game:
-                    moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, steamapp_ids=[appid], gog_id=game.gog_id, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path)})
+                    moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, steamapp_ids=[appid], gog_id=game.gog_id, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path, override_appdata=game.override_appdata, override_mygames=game.override_mygames)})
             except Exception as e:
                 logging.error(e)
                 continue
@@ -453,21 +466,21 @@ def list_installed_gog_games(heroic_path: pathlib.Path) -> dict[str, InstalledGa
         if not isinstance(entry, dict):
             continue
 
-        install_path = os.path.expanduser(entry.get("install_path", ""))
-        name = pathlib.Path(install_path).name if install_path else entry.get("appName", "Unknown")
+        install_path = pathlib.Path(entry.get("install_path", ""))
+        name = install_path.name if install_path else entry.get("appName", "Unknown")
         appid = entry.get("appName") or name
 
         games.append({
             "appid": appid,
             "name": name,
-            "path": install_path,
+            "path": str(install_path),
             "platform": entry.get("platform"),
             "version": entry.get("version"),
         })
 
         game = game_registry.get_game_by_id(appid)
         if game:
-            moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, steamapp_ids=game.steamapp_ids, gog_id=appid, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path)})
+            moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, steamapp_ids=game.steamapp_ids, gog_id=appid, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path, override_appdata=game.override_appdata, override_mygames=game.override_mygames)})
 
     logging.debug(json.dumps(games, indent=JSON_INDENT))
     return moddable_games
@@ -562,8 +575,8 @@ def fix_bottles_permissions() -> None:
     The overrides are necessary for Bottles to properly access game data when running Windows applications
     through the Linux environment.
     """
-    run(["flatpak", "override", "--user", "com.usebottles.bottles", "--filesystem=xdg-data/Steam"], check=True)
-    run(["flatpak", "override", "--user", "com.usebottles.bottles", "--filesystem=~/Games/Heroic"], check=True)
+    run(["flatpak", "override", "--user", BOTTLES_PACKAGE, "--filesystem=xdg-data/Steam"], check=True)
+    run(["flatpak", "override", "--user", BOTTLES_PACKAGE, "--filesystem=~/Games/Heroic"], check=True)
 
 def find_duplicate_games(
     steam_games: dict[str, InstalledGame],
