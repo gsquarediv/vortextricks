@@ -527,7 +527,7 @@ def download(url: str | bytes, destination: pathlib.Path) -> pathlib.Path:
             file.write(chunk)
     return destination
 
-def download_vortex(directory: pathlib.Path) -> pathlib.Path:
+def download_vortex(directory: pathlib.Path, version: str | None = None) -> pathlib.Path:
     """
     Download the latest Vortex setup executable from GitHub releases.
     
@@ -538,6 +538,7 @@ def download_vortex(directory: pathlib.Path) -> pathlib.Path:
     
     Parameters:
         directory (Path): Target directory for saving the downloaded file
+        version (str, optional): Specific version to download. If None, fetches latest
         
     Returns:
         Path: Absolute path to the downloaded Vortex setup executable
@@ -546,15 +547,18 @@ def download_vortex(directory: pathlib.Path) -> pathlib.Path:
         requests.exceptions.RequestException: If API request fails or network error occurs
         ValueError: If required release information is missing from the API response
     """
-    logging.info("Fetching latest Vortex release from GitHub...")
-    api_url = "https://api.github.com/repos/Nexus-Mods/Vortex/releases/latest"
-    response = requests.get(api_url, timeout=10)
-    response.raise_for_status()
-    release = response.json()
-    latest_tag = release.get("tag_name")
-    logging.info("Latest tag: %s", latest_tag)
-    filename = f"vortex-setup-{latest_tag.lstrip('v')}.exe"
-    download_url = f"https://github.com/Nexus-Mods/Vortex/releases/download/{latest_tag}/{filename}"
+    if version is None:
+        logging.info("Fetching latest Vortex release from GitHub...")
+        api_url = "https://api.github.com/repos/Nexus-Mods/Vortex/releases/latest"
+        response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
+        release = response.json()
+        tag_version = release.get("tag_name")
+        logging.info("Latest tag: %s", tag_version)
+    else:
+        tag_version = version
+    filename = f"vortex-setup-{tag_version.lstrip('v')}.exe"
+    download_url = f"https://github.com/Nexus-Mods/Vortex/releases/download/{tag_version}/{filename}"
     path = directory.joinpath(filename)
     download(download_url, path)
     return path
