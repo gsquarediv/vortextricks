@@ -166,13 +166,13 @@ def main() -> None:
             programs = run(wine_command + ["--json", "programs", "-b", bottle_name], check=True, capture_output=True).stdout.decode("utf-8")
             if "Vortex.exe" not in programs:
                 temp_dir.mkdir(parents=True, exist_ok=True)
-                installer_path = download_vortex(temp_dir)
-                install_vortex(wine_command, installer_path, bottle_name)
+                vortex_installer_path = download_vortex(temp_dir)
+                install_program(wine_command, vortex_installer_path, bottle_name)
     else:
         if not pathlib.Path(pathlib.Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists():
             temp_dir = pathlib.Path("/tmp")
-            installer_path = download_vortex(temp_dir)
-            install_vortex(wine_command, installer_path)
+            vortex_installer_path = download_vortex(temp_dir)
+            install_program(wine_command, vortex_installer_path)
             # Modify shortcut to add NXM mimetype for Vortex integration with web browsers on nexusmods.com
             shortcut_path = pathlib.Path.home() / ".local" / "share" / "applications" / "wine" / "Programs" / "Black Tree Gaming Ltd" / "Vortex.desktop"
             with open(shortcut_path, "a", encoding="utf-8") as file:
@@ -559,8 +559,8 @@ def download_vortex(directory: pathlib.Path) -> pathlib.Path:
     download(download_url, path)
     return path
 
-def install_vortex(wine_command: list[str], installer_path: pathlib.Path, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
-    """Installs Vortex using WINE or Bottles."""
+def install_program(wine_command: list[str], installer_path: pathlib.Path, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
+    """Installs an application using WINE or Bottles."""
     if using_bottles(wine_command):
         result = run(wine_command + ["run", "-b", bottle_name, "-e", str(installer_path)], check=True)
     else:
