@@ -31,6 +31,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import urllib.parse
 from enum import Enum
 from typing import Optional
 
@@ -514,14 +515,17 @@ def add_registry_entry(wine_command: list[str], key: str, value: str, data: path
                                    str(data)], check=True)
     return result
 
-def download(url: str | bytes, destination) -> None:
+def download(url: str | bytes, destination: pathlib.Path) -> pathlib.Path:
     """Download a file from a URL using requests."""
     logging.info("Downloading %s to %s", url, destination)
     response = requests.get(url, stream=True, timeout=10)
     response.raise_for_status()
+    if destination.is_dir():
+        destination = destination / urllib.parse.urlparse(response.url).path.split("/")[-1]
     with open(destination, "wb") as file:
         for chunk in response.iter_content(chunk_size=8192):
             file.write(chunk)
+    return destination
 
 def download_vortex(directory: pathlib.Path) -> pathlib.Path:
     """
