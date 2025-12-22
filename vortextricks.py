@@ -168,17 +168,16 @@ def main() -> None:
                 temp_dir.mkdir(parents=True, exist_ok=True)
                 vortex_installer_path = download_vortex(temp_dir)
                 install_program(wine_command, vortex_installer_path, bottle_name)
-    else:
-        if not pathlib.Path(pathlib.Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists():
-            temp_dir = pathlib.Path("/tmp")
-            vortex_installer_path = download_vortex(temp_dir)
-            install_program(wine_command, vortex_installer_path)
-            # Modify shortcut to add NXM mimetype for Vortex integration with web browsers on nexusmods.com
-            shortcut_path = pathlib.Path.home() / ".local" / "share" / "applications" / "wine" / "Programs" / "Black Tree Gaming Ltd" / "Vortex.desktop"
-            with open(shortcut_path, "a", encoding="utf-8") as file:
-                file.write("Categories=Game;\n")
-                file.write("MimeType=x-scheme-handler/nxm;x-scheme-handler/nxm-protocol\n")
-            run(["sudo", "update-desktop-database"], check=False)
+    elif not pathlib.Path(pathlib.Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists():
+        temp_dir = pathlib.Path("/tmp")
+        vortex_installer_path = download_vortex(temp_dir)
+        install_program(wine_command, vortex_installer_path)
+        # Modify shortcut to add NXM mimetype for Vortex integration with web browsers on nexusmods.com
+        shortcut_path = pathlib.Path.home() / ".local" / "share" / "applications" / "wine" / "Programs" / "Black Tree Gaming Ltd" / "Vortex.desktop"
+        with open(shortcut_path, "a", encoding="utf-8") as file:
+            file.write("Categories=Game;\n")
+            file.write("MimeType=x-scheme-handler/nxm;x-scheme-handler/nxm-protocol\n")
+        run(["sudo", "update-desktop-database"], check=False)
 
 def run(args: list[str], **kwargs) -> subprocess.CompletedProcess:
     """Wrap subprocess.run() and automatically inject `run` for proton binaries."""
