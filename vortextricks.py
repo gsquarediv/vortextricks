@@ -168,16 +168,24 @@ def main() -> None:
                 temp_dir.mkdir(parents=True, exist_ok=True)
                 vortex_installer_path = download_vortex(temp_dir)
                 install_program(wine_command, vortex_installer_path, bottle_name)
+                content = f"""[Desktop Entry]
+Name=Vortex (NXM)
+Type=Application
+Categories=Game;
+Exec={' '.join(wine_command)} run -p Vortex -b '{bottle_name}' -- -d "%u"
+MimeType=x-scheme-handler/nxm
+Comment=Link Handler
+NoDisplay=true"""
+                shortcut_path = pathlib.Path.home() / ".local" / "share" / "applications" / f"{bottle_name}.desktop"
+                with open(shortcut_path, "w", encoding="utf-8") as file:
+                    file.write(content)
+                if set(bottle_names.values()).__len__() == 1:
+                    # Don't set default handler if there are multiple bottles
+                    run(["xdg-mime", "default", shortcut_path.name, "x-scheme-handler/nxm"], check=False)
     elif not pathlib.Path(pathlib.Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists():
         temp_dir = pathlib.Path("/tmp")
         vortex_installer_path = download_vortex(temp_dir)
         install_program(wine_command, vortex_installer_path)
-        # Modify shortcut to add NXM mimetype for Vortex integration with web browsers on nexusmods.com
-        shortcut_path = pathlib.Path.home() / ".local" / "share" / "applications" / "wine" / "Programs" / "Black Tree Gaming Ltd" / "Vortex.desktop"
-        with open(shortcut_path, "a", encoding="utf-8") as file:
-            file.write("Categories=Game;\n")
-            file.write("MimeType=x-scheme-handler/nxm;x-scheme-handler/nxm-protocol\n")
-        run(["sudo", "update-desktop-database"], check=False)
 
 def run(args: list[str], **kwargs) -> subprocess.CompletedProcess:
     """Wrap subprocess.run() and automatically inject `run` for proton binaries."""
@@ -713,6 +721,17 @@ def handle_duplicates(
 def get_bottles_path(bottles_command: list[str]) -> pathlib.Path:
     """Retrieve the path to the bottles directory."""
     return pathlib.Path(run(bottles_command + ["info", "bottles-path"], check=True, capture_output=True).stdout.decode("utf-8").strip())
+
+def fix_plasma6() -> subprocess.CompletedProcess | None:
+    """
+    Fix known issue with `xdg-mime default` on KDE Plasma 6 systems by creating a symlink for qtpaths.
+    See: https://gitlab.freedesktop.org/xdg/xdg-utils/-/issues/283
+    
+    :return:
+    :rtype: CompletedProcess | None
+    """
+    if shutil.which("xdg-mime") is not None and shutil.which("qtpaths") is None and pathlib.Path("/usr/bin/qtpaths6").exists() and not pathlib.Path("/usr/local/bin/qtpaths").exists():
+        return run(["sudo", "ln", "-s", "/usr/bin/qtpaths6", "/usr/local/bin/qtpaths"], check=True)
 
 if __name__ == "__main__":
     main()
