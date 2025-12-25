@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Vortex (NXM)
+Type=Application
+Categories=Game;
+MimeType=x-scheme-handler/nxm
+Comment=Link Handler
+NoDisplay=true

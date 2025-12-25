@@ -111,18 +111,15 @@ At the moment the script has no command‑line arguments; it is intended to be r
 After the script finishes, you may need to perform a few manual steps to complete the setup:
 
 - **Desktop shortcut & browser integration**  
-  - **Native WINE** – The script automatically creates a desktop shortcut for Vortex and registers the `nxm` MIME type for browser integration with [Nexus Mods](https://www.nexusmods.com/).  
-  - **Bottles** – The shortcut has to be created manually in the Bottles GUI.  Open the bottle, add a "Desktop Entry" for the Vortex executable and edit the generated `.desktop` file to include:  
-    ```bash
-    MimeType=x-scheme-handler/nxm;x-scheme-handler/nxm-protocol
-    ```  
-    > ⚠️ **Note:** Using separate Bottles for duplicate games can complicate this browser integration, so keep that in mind when deciding whether to isolate each copy in its own bottle.
+  - **Bottles** – The script automatically creates a hidden desktop shortcut for Vortex and registers the `nxm` MIME type for browser integration with [Nexus Mods](https://www.nexusmods.com/).  
+    > ⚠️ **Note:** If you choose to use separate bottles for duplicate games, a hidden desktop shortcut will be created for each bottle, but you will have to run `xdg-mime default` manually to select which instance of Vortex is the default handler for browser integration.
+  - **Native WINE** – Automatic MIME type configuration is not implemented.  You will have to manually configure MIME type integration for browser links to work with Vortex.  
 
 - **Game initialization**  
   Any game to be modded needs to be ran once before attempting to mod it.  Otherwise, missing files may cause errors in Vortex.
 
 - **Mod staging folder**  
-  Vortex needs a staging folder where it temporarily stores mods before deploying them.  After the initial run, open Vortex and accept the default suggestion for the staging folder (or select one of your choice).  Without this, mod deployments will fail.
+  Vortex needs a staging folder where it temporarily stores mods before deploying them.  When running Vortex in Bottles (Flatpak), the default suggestions seem to work pretty well.  You may be able to simply enable "Automatically use suggested path for staging folder" in Settings and let Vortex handle it.  If that does not work, you will have to manually set your staging folder for every game.
 
 ---
 

@@ -34,6 +34,7 @@ import subprocess
 import urllib.parse
 from enum import Enum
 from typing import Optional
+from warnings import deprecated
 
 import protontricks
 import requests
@@ -136,7 +137,7 @@ def main() -> None:
     except RuntimeError, subprocess.CalledProcessError:
         if shutil.which("wine") is None:
             if shutil.which("dnf"):
-                command = ["sudo", "dnf", "install", "wine"]
+                command = ["sudo", "dnf", "install", "wine-common", "wine-mono", "wine-fonts", "wine-pulseaudio"]
                 logging.info("WINE can be installed with the following command:\n%s", ' '.join(command))
             raise RuntimeError("Could not locate bottles-cli or wine")
         wine_command = ['wine']
@@ -168,18 +169,13 @@ def main() -> None:
                 temp_dir.mkdir(parents=True, exist_ok=True)
                 vortex_installer_path = download_vortex(temp_dir)
                 install_program(wine_command, vortex_installer_path, bottle_name)
-                content = f"""[Desktop Entry]
-Name=Vortex (NXM)
-Type=Application
-Categories=Game;
-Exec={' '.join(wine_command)} run -p Vortex -b '{bottle_name}' -- -d "%u"
-MimeType=x-scheme-handler/nxm
-Comment=Link Handler
-NoDisplay=true"""
+                with open('vortex.desktop', 'r', encoding='utf-8') as template:
+                    content = template.read()
+                content += f'\nExec={" ".join(wine_command)} run -p Vortex -b "{bottle_name}" -- -d "%u"'
                 shortcut_path = pathlib.Path.home() / ".local" / "share" / "applications" / f"{bottle_name}.desktop"
                 with open(shortcut_path, "w", encoding="utf-8") as file:
                     file.write(content)
-                if set(bottle_names.values()).__len__() == 1:
+                if len(set(bottle_names.values())) == 1:
                     # Don't set default handler if there are multiple bottles
                     run(["xdg-mime", "default", shortcut_path.name, "x-scheme-handler/nxm"], check=False)
     elif not pathlib.Path(pathlib.Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists():
@@ -187,7 +183,7 @@ NoDisplay=true"""
         vortex_installer_path = download_vortex(temp_dir)
         install_program(wine_command, vortex_installer_path)
 
-def run(args: list[str], **kwargs) -> subprocess.CompletedProcess:
+def run(args: list[str], check: bool = True, **kwargs) -> subprocess.CompletedProcess:
     """Wrap subprocess.run() and automatically inject `run` for proton binaries."""
     # Expand user (~) and environment vars
     command = os.path.expanduser(args[0])
@@ -203,7 +199,7 @@ def run(args: list[str], **kwargs) -> subprocess.CompletedProcess:
         args = [command, *args[1:]]
 
     logging.debug("Running: %s", " ".join(args))
-    return subprocess.run(args, **kwargs)
+    return subprocess.run(args, check=check, **kwargs)
 
 def detect_bottles() -> list[str]:
     """Return the first found bottles CLI or raise an exception."""
@@ -722,6 +718,7 @@ def get_bottles_path(bottles_command: list[str]) -> pathlib.Path:
     """Retrieve the path to the bottles directory."""
     return pathlib.Path(run(bottles_command + ["info", "bottles-path"], check=True, capture_output=True).stdout.decode("utf-8").strip())
 
+@deprecated('xdg-mime seems to work despite the error message.')
 def fix_plasma6() -> subprocess.CompletedProcess | None:
     """
     Fix known issue with `xdg-mime default` on KDE Plasma 6 systems by creating a symlink for qtpaths.
