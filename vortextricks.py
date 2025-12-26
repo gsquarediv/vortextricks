@@ -160,9 +160,9 @@ def main() -> None:
     # ----------------------------------------------------------------------------------------------------- #
     # 4. Install Vortex into the prefix(es) that are used
     # ----------------------------------------------------------------------------------------------------- #
+    shortcut_directory = pathlib.Path.home() / ".local" / "share" / "applications"
     if using_bottles(wine_command):
-        bottles_path = get_bottles_path(wine_command)
-        temp_dir = bottles_path.parent.joinpath("temp")
+        temp_dir = get_bottles_path(wine_command).parent.joinpath("temp")
         for bottle_name in set(bottle_names.values()):
             programs = run(wine_command + ["--json", "programs", "-b", bottle_name], check=True, capture_output=True).stdout.decode("utf-8")
             if "Vortex.exe" not in programs:
@@ -172,16 +172,18 @@ def main() -> None:
                 with open('vortex.desktop', 'r', encoding='utf-8') as template:
                     content = template.read()
                 content += f'\nExec={" ".join(wine_command)} run -p Vortex -b "{bottle_name}" -- -d "%u"'
-                shortcut_path = pathlib.Path.home() / ".local" / "share" / "applications" / f"{bottle_name}.desktop"
-                with open(shortcut_path, "w", encoding="utf-8") as file:
+                shortcut = shortcut_directory.joinpath(f"{bottle_name}.desktop")
+                with open(shortcut, "w", encoding="utf-8") as file:
                     file.write(content)
-                if len(set(bottle_names.values())) == 1:
+                if shutil.which("xdg-mime") and len(set(bottle_names.values())) == 1:
                     # Don't set default handler if there are multiple bottles
-                    run(["xdg-mime", "default", shortcut_path.name, "x-scheme-handler/nxm"], check=False)
+                    run(["xdg-mime", "default", shortcut.name, "x-scheme-handler/nxm"], check=False)
     elif not pathlib.Path(pathlib.Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists():
         temp_dir = pathlib.Path("/tmp")
         vortex_installer_path = download_vortex(temp_dir)
         install_program(wine_command, vortex_installer_path)
+        if shutil.which("update-desktop-database") and shortcut_directory.exists():
+            run(["update-desktop-database", str(shortcut_directory)], check=False, capture_output=True)
 
 def run(args: list[str], check: bool = True, **kwargs) -> subprocess.CompletedProcess:
     """Wrap subprocess.run() and automatically inject `run` for proton binaries."""
