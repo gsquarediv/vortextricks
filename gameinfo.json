@@ -56,7 +56,7 @@
         "ms_id": "BethesdaSoftworks.TESOblivion-PC",
         "epic_id": null,
         "registry_entries": {
-            "HKEY_LOCAL_MACHINE:Software\\Wow6432Node\\Bethesda Softworks\\oblivion": "Installed Path"
+            "HKEY_LOCAL_MACHINE\\Software\\Wow6432Node\\Bethesda Softworks\\oblivion": "Installed Path"
         },
         "override_mygames": null,
         "override_appdata": null
@@ -71,7 +71,7 @@
         "ms_id": "BethesdaSoftworks.Fallout4-PC",
         "epic_id": "61d52ce4d09d41e48800c22784d13ae8",
         "registry_entries": {
-            "HKEY_LOCAL_MACHINE:Software\\Wow6432Node\\Bethesda Softworks\\Fallout4": "Installed Path"
+            "HKEY_LOCAL_MACHINE\\Software\\Wow6432Node\\Bethesda Softworks\\Fallout4": "Installed Path"
         },
         "override_mygames": "Fallout4",
         "override_appdata": "Fallout4"
@@ -86,7 +86,7 @@
         "ms_id": null,
         "epic_id": null,
         "registry_entries": {
-            "HKEY_LOCAL_MACHINE:Software\\Wow6432Node\\Bethesda Softworks\\Fallout3": "Installed Path"
+            "HKEY_LOCAL_MACHINE\\Software\\Wow6432Node\\Bethesda Softworks\\Fallout3": "Installed Path"
         },
         "override_mygames": "Fallout3",
         "override_appdata": "Fallout3"
@@ -101,7 +101,7 @@
         "ms_id": null,
         "epic_id": null,
         "registry_entries": {
-            "HKEY_LOCAL_MACHINE:Software\\Wow6432Node\\Bethesda Softworks\\Fallout3": "Installed Path"
+            "HKEY_LOCAL_MACHINE\\Software\\Wow6432Node\\Bethesda Softworks\\Fallout3": "Installed Path"
         },
         "override_mygames": null,
         "override_appdata": null
@@ -116,7 +116,7 @@
         "ms_id": null,
         "epic_id": null,
         "registry_entries": {
-            "HKEY_LOCAL_MACHINE:Software\\Wow6432Node\\Bethesda Softworks\\Morrowind": "Installed Path"
+            "HKEY_LOCAL_MACHINE\\Software\\Wow6432Node\\Bethesda Softworks\\Morrowind": "Installed Path"
         },
         "override_mygames": null,
         "override_appdata": null
