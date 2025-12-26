@@ -166,8 +166,8 @@ python -c "import jsonschema, json, pathlib; schema = json.load(open('gameinfo.s
 | Wine fails to create the prefix | Missing Wine binary or broken permissions | Install `wine` (`sudo dnf install wine` on Fedora) |
 | `Using bottles-cli` errors | `bottles-cli` not found and `flatpak` is missing | Install Bottles via `flatpak install com.usebottles.bottles` or use vanilla WINE |
 | Duplicate game prompts not showing | The duplicate detection logic didn’t find overlapping game IDs | Ensure both stores are present and the game IDs match those in `gameinfo.json` |
-| Symlinks not working | Proton prefix path is wrong or the target does not exist | Verify the Proton prefix (default: `~/.steam/root/compatdata/<APPID>/pfx`) |
-| Vortex.exe not launching | The installer could not be downloaded | Check internet connectivity or the GitHub API rate‑limit |
+| Symlinks not working | Proton prefix path is wrong or the target does not exist | Verify the Proton prefix (default: `~/.local/share/Steam/steamapps/compatdata/<APPID>/pfx`) |
+| `ReadTimeout` errors | The installer could not be downloaded | Check internet connectivity or the GitHub API rate‑limit |
 
 ---
 

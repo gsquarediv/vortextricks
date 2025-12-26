@@ -9,8 +9,7 @@ This script performs the following high-level tasks:
 2. **Enumerate installed games** - builds a mapping of app-IDs to `InstalledGame` objects.
 3. **Resolve duplicate titles** - prompts the user to decide which copy of a game to keep
    (Steam vs. GOG) and optionally creates separate Bottles bottles.
-4. **Create/locate WINE prefixes** - creates a Vortex-specific prefix when using vanilla
-   WINE or Bottles.
+4. **Create/locate WINE prefixes** - creates a Vortex-specific prefix.
 5. **Register games inside Vortex** - writes registry entries and symlinks for each game.
 6. **Install Vortex** - downloads the latest release from GitHub and installs it into the
    chosen prefix.
@@ -89,7 +88,7 @@ def main() -> None:
     Steps:
     1. Enumerate installed Steam/GOG games.
     2. Detect if the user is using Bottles or WINE.
-    3. Create the Vortex prefix(es) if non-existant.
+    3. Create WINE prefix(es) for Vortex if necessary.
     4. Register the games inside the prefix.
     5. Ensure Vortex is installed; otherwise download & install it.
     """
@@ -134,12 +133,12 @@ def main() -> None:
             else:
                 vortex_prefix = get_bottles_path(wine_command) / 'Vortex'
             prefixes = {Store.STEAM: vortex_prefix, Store.GOG: vortex_prefix}
-    except RuntimeError, subprocess.CalledProcessError:
+    except* (RuntimeError, subprocess.CalledProcessError) as e:
         if shutil.which("wine") is None:
             if shutil.which("dnf"):
                 command = ["sudo", "dnf", "install", "wine-common", "wine-mono", "wine-fonts", "wine-pulseaudio"]
                 logging.info("WINE can be installed with the following command:\n%s", ' '.join(command))
-            raise RuntimeError("Could not locate bottles-cli or wine")
+            raise RuntimeError("Could not locate bottles-cli or wine") from e
         wine_command = ['wine']
         if duplicates:
             steam_games, gog_games, bottle_names = handle_duplicates(duplicates, steam_games, gog_games, wine_command)
@@ -673,13 +672,14 @@ def handle_duplicates(
     """
     bottle_names: dict[Store, str] = {Store.STEAM: "Vortex", Store.GOG: "Vortex"}
     separate_bottles = False
+    bottles: bool = using_bottles(wine_command)
 
     for canonical_id, (steam_appid, gog_appid) in duplicates.items():
         print(f"\nDuplicate detected for '{canonical_id}':")
         print(f"  1) Use Steam version (AppID={steam_appid})")
         print(f"  2) Use GOG version   (AppID={gog_appid})")
         choice = ""
-        if using_bottles(wine_command):
+        if bottles:
             print("  3) Separate bottles for each store")
             while choice not in ("1", "2", "3"):
                 choice = input("Enter 1, 2, or 3: ").strip()
@@ -695,11 +695,11 @@ def handle_duplicates(
             # Keep GOG entry, drop Steam
             if steam_appid in steam_games:
                 del steam_games[steam_appid]
-        elif choice == "3" and using_bottles(wine_command):
+        elif choice == "3" and bottles:
             separate_bottles = True
 
     # Create (or reuse) the appropriate bottles
-    if using_bottles(wine_command):
+    if bottles:
         if separate_bottles:
             # Create two bottles if they don't exist
             for store, bottle_name in [(Store.STEAM, "Vortex-Steam"),
