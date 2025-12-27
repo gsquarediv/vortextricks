@@ -133,7 +133,7 @@ def main() -> None:
             else:
                 vortex_prefix = get_bottles_path(wine_command) / 'Vortex'
             prefixes = {Store.STEAM: vortex_prefix, Store.GOG: vortex_prefix}
-    except* (RuntimeError, subprocess.CalledProcessError) as e:
+    except (RuntimeError, subprocess.CalledProcessError) as e:
         if shutil.which("wine") is None:
             if shutil.which("dnf"):
                 command = ["sudo", "dnf", "install", "wine-common", "wine-mono", "wine-fonts", "wine-pulseaudio"]
@@ -168,7 +168,7 @@ def main() -> None:
                 temp_dir.mkdir(parents=True, exist_ok=True)
                 vortex_installer_path = download_vortex(temp_dir)
                 install_program(wine_command, vortex_installer_path, bottle_name)
-                content = Path('vortex.desktop').read_text()
+                content = Path('vortex.desktop').read_text(encoding='utf-8')
                 content += f'\nExec={" ".join(wine_command)} run -p Vortex -b "{bottle_name}" -- -d "%u"'
                 shortcut = shortcut_directory.joinpath(f"{bottle_name}.desktop")
                 shortcut.write_text(content, encoding='utf-8')
@@ -397,7 +397,7 @@ def list_installed_steam_games(steam_path: Path) -> dict[str, InstalledGame]:
         raise FileNotFoundError(f"Steam path not found: {steamapps}")
 
     # --- Read libraryfolders.vdf to find all Steam library locations ---
-    libraries = set()
+    libraries: set[Path] = set()
     lib_file = steamapps / "libraryfolders.vdf"
     if lib_file.exists():
         with lib_file.open(encoding="utf-8") as file:
@@ -421,27 +421,27 @@ def list_installed_steam_games(steam_path: Path) -> dict[str, InstalledGame]:
     libraries.add(steamapps)
 
     # --- Find all installed games ---
-    games = {}
-    moddable_games = {}
+    games: dict[str, dict[str, str]] = {}
+    moddable_games: dict[str, InstalledGame] = {}
     for lib in libraries:
         for app_manifest in lib.glob("appmanifest_*.acf"):
             try:
-                data = vdf.load(app_manifest.open(encoding="utf-8"))
+                with app_manifest.open(encoding="utf-8") as manifest_file:
+                    data = vdf.load(manifest_file)
                 appid = data["AppState"]["appid"]
                 name = data["AppState"]["name"]
-                installdir = data["AppState"]["installdir"]
+                installdir = Path(data["AppState"]["installdir"])
                 install_path = lib / "common" / installdir
                 # Use appid as a unique key to prevent duplicates
                 games[appid] = {
                     "name": name,
-                    "appid": appid,
                     "path": str(install_path)
                 }
                 game = game_registry.get_game_by_id(appid)
                 if game:
                     moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, steamapp_ids=[appid], gog_id=game.gog_id, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path, override_appdata=game.override_appdata, override_mygames=game.override_mygames)})
             except Exception as e:
-                logging.error(e)
+                logging.exception(e)
                 continue
 
     logging.debug(json.dumps(list(games.values()), indent=JSON_INDENT))
@@ -464,7 +464,7 @@ def list_installed_gog_games(heroic_path: Path) -> dict[str, InstalledGame]:
         raise TypeError(f"Expected 'installed' to be a list, got {type(installed_section).__name__}")
 
     games = []
-    moddable_games = {}
+    moddable_games: dict[str, InstalledGame] = {}
     for entry in installed_section:
         if not isinstance(entry, dict):
             continue
@@ -670,7 +670,7 @@ def handle_duplicates(
     """
     bottle_names: dict[Store, str] = {Store.STEAM: "Vortex", Store.GOG: "Vortex"}
     separate_bottles = False
-    bottles: bool = using_bottles(wine_command)
+    bottles = using_bottles(wine_command)
 
     for canonical_id, (steam_appid, gog_appid) in duplicates.items():
         print(f"\nDuplicate detected for '{canonical_id}':")
