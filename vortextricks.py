@@ -27,10 +27,10 @@ from dataclasses import dataclass, field
 import json
 import logging
 import os
-import pathlib
 import shutil
 import subprocess
 import urllib.parse
+from pathlib import Path, PureWindowsPath, PurePosixPath
 from enum import Enum
 from typing import Optional
 from warnings import deprecated
@@ -65,7 +65,7 @@ class InstalledGame(gameinfo.GameInfo):
     Attributes:
         game_path: The Path object pointing to the game's installation directory.
     """
-    game_path: pathlib.Path = field(default_factory=pathlib.Path)
+    game_path: Path = field(default_factory=Path)
 
 BOTTLES_PACKAGE = 'com.usebottles.bottles'
 
@@ -121,7 +121,7 @@ def main() -> None:
         if duplicates:
             steam_games, gog_games, bottle_names = handle_duplicates(duplicates, steam_games, gog_games, wine_command)
             bottles_path = get_bottles_path(wine_command)
-            prefixes: dict[Store, pathlib.Path] = {
+            prefixes: dict[Store, Path] = {
                 store: bottles_path / bottle_names[store] for store in [Store.STEAM, Store.GOG]
             }
         else:
@@ -159,7 +159,7 @@ def main() -> None:
     # ----------------------------------------------------------------------------------------------------- #
     # 4. Install Vortex into the prefix(es) that are used
     # ----------------------------------------------------------------------------------------------------- #
-    shortcut_directory = pathlib.Path.home() / ".local" / "share" / "applications"
+    shortcut_directory = Path.home() / ".local" / "share" / "applications"
     if using_bottles(wine_command):
         temp_dir = get_bottles_path(wine_command).parent.joinpath("temp")
         for bottle_name in set(bottle_names.values()):
@@ -168,17 +168,15 @@ def main() -> None:
                 temp_dir.mkdir(parents=True, exist_ok=True)
                 vortex_installer_path = download_vortex(temp_dir)
                 install_program(wine_command, vortex_installer_path, bottle_name)
-                with open('vortex.desktop', 'r', encoding='utf-8') as template:
-                    content = template.read()
+                content = Path('vortex.desktop').read_text()
                 content += f'\nExec={" ".join(wine_command)} run -p Vortex -b "{bottle_name}" -- -d "%u"'
                 shortcut = shortcut_directory.joinpath(f"{bottle_name}.desktop")
-                with open(shortcut, "w", encoding="utf-8") as file:
-                    file.write(content)
+                shortcut.write_text(content, encoding='utf-8')
                 if shutil.which("xdg-mime") and len(set(bottle_names.values())) == 1:
                     # Don't set default handler if there are multiple bottles
                     run(["xdg-mime", "default", shortcut.name, "x-scheme-handler/nxm"], check=False)
-    elif not pathlib.Path(pathlib.Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists():
-        temp_dir = pathlib.Path("/tmp")
+    elif not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists():
+        temp_dir = Path("/tmp")
         vortex_installer_path = download_vortex(temp_dir)
         install_program(wine_command, vortex_installer_path)
         if shutil.which("update-desktop-database") and shortcut_directory.exists():
@@ -241,7 +239,7 @@ def is_existing_bottle(bottles_command: list[str], bottle_name: str = "Vortex") 
     else:
         return False
 
-def create_bottle(bottles_command: list[str], bottle_name: str = "Vortex") -> pathlib.Path:
+def create_bottle(bottles_command: list[str], bottle_name: str = "Vortex") -> Path:
     """
     Create a new game bottle with the appropriate runner configuration.
     
@@ -270,9 +268,9 @@ def create_bottle(bottles_command: list[str], bottle_name: str = "Vortex") -> pa
         logging.warning("No sys-wine runner found.  Using default runner.")
         run(bottles_command + ["new", "--bottle-name", bottle_name, "--environment", "application"], check=True)
 
-    return pathlib.Path(get_bottles_path(bottles_command)) / bottle_name
+    return Path(get_bottles_path(bottles_command)) / bottle_name
 
-def find_vortex_prefix() -> pathlib.Path:
+def find_vortex_prefix() -> Path:
     """
     Locate or create the WINEPREFIX directory for Vortex Wine configuration.
     
@@ -284,10 +282,10 @@ def find_vortex_prefix() -> pathlib.Path:
         pathlib.Path: The absolute path to the Vortex Wine prefix directory
     """
     if 'WINEPREFIX' not in os.environ:
-        os.environ['WINEPREFIX'] = str(pathlib.Path.home() / 'Games/vortex/pfx')
-    return pathlib.Path(os.environ['WINEPREFIX'])
+        os.environ['WINEPREFIX'] = str(Path.home() / 'Games/vortex/pfx')
+    return Path(os.environ['WINEPREFIX'])
 
-def find_steam() -> pathlib.Path | None:
+def find_steam() -> Path | None:
     """Locate the Steam installation path using protontricks utility.
     
     Returns:
@@ -299,7 +297,7 @@ def find_steam() -> pathlib.Path | None:
     """
     return protontricks.find_steam_path()[0]
 
-def find_heroic() -> pathlib.Path | None:
+def find_heroic() -> Path | None:
     """
     Locate the Heroic games launcher configuration directory.
 
@@ -313,8 +311,8 @@ def find_heroic() -> pathlib.Path | None:
     This is used to locate game-specific configuration files for GOG games
     managed through the Heroic launcher.
     """
-    path = pathlib.Path.home() / ".var/app/com.heroicgameslauncher.hgl/config/heroic"
-    if pathlib.Path.exists(path):
+    path = Path.home() / ".var/app/com.heroicgameslauncher.hgl/config/heroic"
+    if Path.exists(path):
         return path
 
 def create_wine_prefix(proton_path: str | None = None) -> subprocess.CompletedProcess:
@@ -337,7 +335,7 @@ def create_wine_prefix(proton_path: str | None = None) -> subprocess.CompletedPr
     else:
         return run([proton_path, "wineboot", "-u"], check=True)
 
-def configure_vortex_environment(wine_command: list[str], store: Store, library: dict[str, InstalledGame], vortex_prefix: pathlib.Path, bottle_name: str = "Vortex") -> None:
+def configure_vortex_environment(wine_command: list[str], store: Store, library: dict[str, InstalledGame], vortex_prefix: Path, bottle_name: str = "Vortex") -> None:
     """
     Register the games that are already in the user's library inside the Vortex
     bottle.  `library` is the dict returned by ``list_installed_*_games`` - it
@@ -363,7 +361,7 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
         # Add all registry entries
         for key, value in game.registry_entries.items():
             # Convert the Unix path to a Windows‑style path that Vortex expects
-            win_path = pathlib.PureWindowsPath("z:", pathlib.PurePosixPath(installed_game.game_path))
+            win_path = PureWindowsPath("z:", PurePosixPath(installed_game.game_path))
             logging.info("Adding registry entry: %s -> %s\\%s", win_path, key, value)
             add_registry_entry(wine_command, key, value, win_path, bottle_name)
 
@@ -372,7 +370,7 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
             vortex_symlink.create_game_symlinks(
                 game=installed_game,
                 vortex_prefix=vortex_prefix,
-                game_prefix=pathlib.Path.home() / f'.local/share/Steam/steamapps/compatdata/{app_id}/pfx')
+                game_prefix=Path.home() / f'.local/share/Steam/steamapps/compatdata/{app_id}/pfx')
         elif store == Store.GOG:
             if installed_game.gog_id:
                 folder_name = vortex_symlink.get_sorting_title(installed_game.gog_id)
@@ -380,11 +378,11 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
                     vortex_symlink.create_game_symlinks(
                         game=installed_game,
                         vortex_prefix=vortex_prefix,
-                        game_prefix=pathlib.Path.home() / "Games" / "Heroic" / "Prefixes" / "default" / folder_name)
+                        game_prefix=Path.home() / "Games" / "Heroic" / "Prefixes" / "default" / folder_name)
             else:
                 raise ValueError("Missing GOG ID")
 
-def list_installed_steam_games(steam_path: pathlib.Path) -> dict[str, InstalledGame]:
+def list_installed_steam_games(steam_path: Path) -> dict[str, InstalledGame]:
     """
     Returns a list of installed Steam games (name, appid, and install path).
 
@@ -404,20 +402,20 @@ def list_installed_steam_games(steam_path: pathlib.Path) -> dict[str, InstalledG
     if lib_file.exists():
         with lib_file.open(encoding="utf-8") as file:
             data = vdf.load(file)
-            libraries_section = data.get("libraryfolders", data)
+        libraries_section = data.get("libraryfolders", data)
 
-            for key, entry in libraries_section.items():
-                # Handle both modern and legacy formats
-                if isinstance(entry, dict):
-                    path = entry.get("path") or entry.get("contentid")
-                    if not path and "apps" in entry:  # fallback if weird structure
-                        path = key
-                    if path:
-                        path = pathlib.Path(path) / "steamapps"
-                        if path.exists():
-                            libraries.add(path)
-                elif isinstance(entry, str) and pathlib.Path(entry).exists():
-                    libraries.add(pathlib.Path(entry) / "steamapps")
+        for key, entry in libraries_section.items():
+            # Handle both modern and legacy formats
+            if isinstance(entry, dict):
+                path = entry.get("path") or entry.get("contentid")
+                if not path and "apps" in entry:  # fallback if weird structure
+                    path = key
+                if path:
+                    path = Path(path) / "steamapps"
+                    if path.exists():
+                        libraries.add(path)
+            elif isinstance(entry, str) and Path(entry).exists():
+                libraries.add(Path(entry) / "steamapps")
 
     # Always ensure the main steamapps folder is included
     libraries.add(steamapps)
@@ -449,7 +447,7 @@ def list_installed_steam_games(steam_path: pathlib.Path) -> dict[str, InstalledG
     logging.debug(json.dumps(list(games.values()), indent=JSON_INDENT))
     return moddable_games
 
-def list_installed_gog_games(heroic_path: pathlib.Path) -> dict[str, InstalledGame]:
+def list_installed_gog_games(heroic_path: Path) -> dict[str, InstalledGame]:
     """
     List all installed GOG games managed by Heroic (Flatpak).
     """
@@ -471,7 +469,7 @@ def list_installed_gog_games(heroic_path: pathlib.Path) -> dict[str, InstalledGa
         if not isinstance(entry, dict):
             continue
 
-        install_path = pathlib.Path(entry.get("install_path", ""))
+        install_path = Path(entry.get("install_path", ""))
         name = install_path.name if install_path else entry.get("appName", "Unknown")
         appid = entry.get("appName") or name
 
@@ -490,7 +488,7 @@ def list_installed_gog_games(heroic_path: pathlib.Path) -> dict[str, InstalledGa
     logging.debug(json.dumps(games, indent=JSON_INDENT))
     return moddable_games
 
-def add_registry_entry(wine_command: list[str], key: str, value: str, data: pathlib.PureWindowsPath, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
+def add_registry_entry(wine_command: list[str], key: str, value: str, data: PureWindowsPath, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
     """
     Adds a registry entry using Wine's reg command, handling both bottled and non-bottled environments.
     
@@ -519,7 +517,7 @@ def add_registry_entry(wine_command: list[str], key: str, value: str, data: path
                                    str(data)], check=True)
     return result
 
-def download(url: str | bytes, destination: pathlib.Path) -> pathlib.Path:
+def download(url: str | bytes, destination: Path) -> Path:
     """Download a file from a URL using requests."""
     logging.info("Downloading %s to %s", url, destination)
     response = requests.get(url, stream=True, timeout=10)
@@ -531,7 +529,7 @@ def download(url: str | bytes, destination: pathlib.Path) -> pathlib.Path:
             file.write(chunk)
     return destination
 
-def download_vortex(directory: pathlib.Path, version: str | None = None) -> pathlib.Path:
+def download_vortex(directory: Path, version: str | None = None) -> Path:
     """
     Download the latest Vortex setup executable from GitHub releases.
     
@@ -567,7 +565,7 @@ def download_vortex(directory: pathlib.Path, version: str | None = None) -> path
     download(download_url, path)
     return path
 
-def install_program(wine_command: list[str], installer_path: pathlib.Path, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
+def install_program(wine_command: list[str], installer_path: Path, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
     """Installs an application using WINE or Bottles."""
     if using_bottles(wine_command):
         result = run(wine_command + ["run", "-b", bottle_name, "-e", str(installer_path)], check=True)
@@ -716,9 +714,9 @@ def handle_duplicates(
 
     return steam_games, gog_games, bottle_names
 
-def get_bottles_path(bottles_command: list[str]) -> pathlib.Path:
+def get_bottles_path(bottles_command: list[str]) -> Path:
     """Retrieve the path to the bottles directory."""
-    return pathlib.Path(run(bottles_command + ["info", "bottles-path"], check=True, capture_output=True).stdout.decode("utf-8").strip())
+    return Path(run(bottles_command + ["info", "bottles-path"], check=True, capture_output=True).stdout.decode("utf-8").strip())
 
 @deprecated('xdg-mime seems to work despite the error message.')
 def fix_plasma6() -> subprocess.CompletedProcess | None:
@@ -729,7 +727,7 @@ def fix_plasma6() -> subprocess.CompletedProcess | None:
     :return:
     :rtype: CompletedProcess | None
     """
-    if shutil.which("xdg-mime") is not None and shutil.which("qtpaths") is None and pathlib.Path("/usr/bin/qtpaths6").exists() and not pathlib.Path("/usr/local/bin/qtpaths").exists():
+    if shutil.which("xdg-mime") is not None and shutil.which("qtpaths") is None and Path("/usr/bin/qtpaths6").exists() and not Path("/usr/local/bin/qtpaths").exists():
         return run(["sudo", "ln", "-s", "/usr/bin/qtpaths6", "/usr/local/bin/qtpaths"], check=True)
 
 if __name__ == "__main__":
