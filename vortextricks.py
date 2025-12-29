@@ -463,7 +463,7 @@ def list_installed_gog_games(heroic_path: Path) -> dict[str, InstalledGame]:
     if not isinstance(installed_section, list):
         raise TypeError(f"Expected 'installed' to be a list, got {type(installed_section).__name__}")
 
-    games = []
+    games:list[dict[str, str | None]] = []
     moddable_games: dict[str, InstalledGame] = {}
     for entry in installed_section:
         if not isinstance(entry, dict):
