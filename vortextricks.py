@@ -37,7 +37,6 @@ from warnings import deprecated
 
 import protontricks
 import requests
-import vdf
 
 import vortex_symlink
 import gameinfo
@@ -392,47 +391,18 @@ def list_installed_steam_games(steam_path: Path) -> dict[str, InstalledGame]:
     Returns:
         list[dict]: A list of dicts with keys: name, appid, and path.
     """
-    steamapps = steam_path / "steamapps"
-    if not steamapps.exists():
-        raise FileNotFoundError(f"Steam path not found: {steamapps}")
-
-    # --- Read libraryfolders.vdf to find all Steam library locations ---
-    libraries: set[Path] = set()
-    lib_file = steamapps / "libraryfolders.vdf"
-    if lib_file.exists():
-        with lib_file.open(encoding="utf-8") as file:
-            data = vdf.load(file)
-        libraries_section = data.get("libraryfolders", data)
-
-        for key, entry in libraries_section.items():
-            # Handle both modern and legacy formats
-            if isinstance(entry, dict):
-                path = entry.get("path") or entry.get("contentid")
-                if not path and "apps" in entry:  # fallback if weird structure
-                    path = key
-                if path:
-                    path = Path(path) / "steamapps"
-                    if path.exists():
-                        libraries.add(path)
-            elif isinstance(entry, str) and Path(entry).exists():
-                libraries.add(Path(entry) / "steamapps")
-
-    # Always ensure the main steamapps folder is included
-    libraries.add(steamapps)
+    libraries: set[Path] = set(protontricks.get_steam_lib_paths(steam_path))
 
     # --- Find all installed games ---
     games: dict[str, dict[str, str]] = {}
     moddable_games: dict[str, InstalledGame] = {}
-    for lib in libraries:
-        for app_manifest in lib.glob("appmanifest_*.acf"):
-            try:
-                with app_manifest.open(encoding="utf-8") as manifest_file:
-                    data = vdf.load(manifest_file)
-                appid = data["AppState"]["appid"]
-                name = data["AppState"]["name"]
-                installdir = Path(data["AppState"]["installdir"])
-                install_path = lib / "common" / installdir
-                # Use appid as a unique key to prevent duplicates
+    steam_apps: list[protontricks.SteamApp] = protontricks.get_steam_apps(protontricks.find_steam_path()[1], steam_path, libraries)
+    for app in steam_apps:
+        try:
+            if app.appid and app.is_tool == False:
+                appid = str(app.appid)
+                name: str = app.name
+                install_path = app.install_path
                 games[appid] = {
                     "name": name,
                     "path": str(install_path)
@@ -440,9 +410,9 @@ def list_installed_steam_games(steam_path: Path) -> dict[str, InstalledGame]:
                 game = game_registry.get_game_by_id(appid)
                 if game:
                     moddable_games.update({appid: InstalledGame(name=game.name, game_id=game.game_id, steamapp_ids=[appid], gog_id=game.gog_id, ms_id=game.ms_id, epic_id=game.epic_id, registry_entries=game.registry_entries, game_path = install_path, override_appdata=game.override_appdata, override_mygames=game.override_mygames)})
-            except Exception as e:
-                logging.exception(e)
-                continue
+        except Exception as e:
+            logging.exception(e)
+            continue
 
     logging.debug(json.dumps(list(games.values()), indent=JSON_INDENT))
     return moddable_games
