@@ -363,7 +363,7 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
             # Convert the Unix path to a Windows‑style path that Vortex expects
             win_path = PureWindowsPath("z:", PurePosixPath(installed_game.game_path))
             logging.info("Adding registry entry: %s -> %s\\%s", win_path, key, value)
-            add_registry_entry(wine_command, key, value, win_path, bottle_name)
+            add_registry_entry(wine_command, key, value, str(win_path), bottle_name)
 
         # Create the game‑specific symlinks when we’re dealing with Steam
         if store == Store.STEAM:
@@ -488,7 +488,7 @@ def list_installed_gog_games(heroic_path: Path) -> dict[str, InstalledGame]:
     logging.debug(json.dumps(games, indent=JSON_INDENT))
     return moddable_games
 
-def add_registry_entry(wine_command: list[str], key: str, value: str, data: PureWindowsPath, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
+def add_registry_entry(wine_command: list[str], key: str, value: str, data: str, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
     """
     Adds a registry entry using Wine's reg command, handling both bottled and non-bottled environments.
     
@@ -500,7 +500,7 @@ def add_registry_entry(wine_command: list[str], key: str, value: str, data: Pure
         wine_command: Base Wine command list for execution
         key: Registry key path (e.g., "HKEY_CURRENT_USER\\Software")
         value: Registry value name
-        data: Registry data path (Windows-style path string)
+        data: Registry data
         bottle_name: Name of the wine bottle to use (default: "Vortex")
     
     Returns:
@@ -509,12 +509,12 @@ def add_registry_entry(wine_command: list[str], key: str, value: str, data: Pure
     if using_bottles(wine_command):
         result = run(wine_command + ["reg", "-b", bottle_name, "-k",
                                    key, "-v", value, "-d",
-                                   str(data), "-t", "REG_SZ", "add"], check=True, capture_output=True)
+                                   data, "-t", "REG_SZ", "add"], check=True, capture_output=True)
     else:
         result = run(wine_command + ["reg", "add",
                                    key,
                                    "/t", "REG_SZ", "/v", value, "/d",
-                                   str(data)], check=True)
+                                   data], check=True)
     return result
 
 def download(url: str | bytes, destination: Path) -> Path:
