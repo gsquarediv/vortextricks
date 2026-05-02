@@ -146,6 +146,7 @@ def main() -> None:
         vortex_prefix = find_vortex_prefix()
         prefixes = {Store.STEAM: vortex_prefix, Store.GOG: vortex_prefix}
         create_wine_prefix()
+        # add_registry_entry(wine_command, "HKEY_CURRENT_USER\\Software\\Wine\\Direct3D", "renderer", "gdi")
 
     # ----------------------------------------------------------------------------------------------------- #
     # 3. Register games inside the prefix(es)
