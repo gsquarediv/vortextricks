@@ -92,7 +92,7 @@ def main() -> None:
     5. Ensure Vortex is installed; otherwise download & install it.
     """
 
-    steam_path = find_steam()
+    steam_path, steam_root = protontricks.find_steam_path()
     steam_games = {}
     heroic_path = find_heroic()
     gog_games = {}
@@ -100,11 +100,14 @@ def main() -> None:
     # ----------------------------------------------------------------------------------------------------- #
     # 1. Gather installed games
     # ----------------------------------------------------------------------------------------------------- #
-    if steam_path is not None:
-        steam_games = list_installed_steam_games(steam_path)
+    if steam_path is not None and steam_root is not None:
+        os.environ['STEAM_COMPAT_CLIENT_INSTALL_PATH'] = str(steam_path)
+        libraries: set[Path] = set(protontricks.get_steam_lib_paths(steam_path))
+        steam_apps: list[protontricks.SteamApp] = protontricks.get_steam_apps(steam_root, steam_path, libraries)
+        steam_games = list_compatible_steam_games(steam_apps)
         logging.debug(steam_games)
     if heroic_path is not None:
-        gog_games = list_installed_gog_games(heroic_path)
+        gog_games = list_compatible_gog_games(heroic_path)
         logging.debug(gog_games)
     duplicates = find_duplicate_games(steam_games, gog_games)
     if duplicates:
@@ -283,19 +286,8 @@ def find_vortex_prefix() -> Path:
     """
     if 'WINEPREFIX' not in os.environ:
         os.environ['WINEPREFIX'] = str(Path.home() / 'Games/vortex/pfx')
+    os.environ['STEAM_COMPAT_DATA_PATH'] = str(Path(os.environ['WINEPREFIX']).parent)
     return Path(os.environ['WINEPREFIX'])
-
-def find_steam() -> Path | None:
-    """Locate the Steam installation path using protontricks utility.
-    
-    Returns:
-        pathlib.Path: The absolute path to the Steam installation directory if found
-        None: If Steam cannot be located by protontricks
-    
-    Note:
-        Relies on protontricks.find_steam_path() to determine the path
-    """
-    return protontricks.find_steam_path()[0]
 
 def find_heroic() -> Path | None:
     """
@@ -382,22 +374,18 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
             else:
                 raise ValueError("Missing GOG ID")
 
-def list_installed_steam_games(steam_path: Path) -> dict[str, InstalledGame]:
+def list_compatible_steam_games(steam_apps: list[protontricks.SteamApp]) -> dict[str, InstalledGame]:
     """
-    Returns a list of installed Steam games (name, appid, and install path).
+    Returns a list of compatible Steam games (name, appid, and install path).
 
     Parameters:
-        steam_path (Path): Steam root path.
+        steam_apps (list[protontricks.SteamApp]): A list of SteamApp objects.
 
     Returns:
         list[dict]: A list of dicts with keys: name, appid, and path.
     """
-    libraries: set[Path] = set(protontricks.get_steam_lib_paths(steam_path))
-
-    # --- Find all installed games ---
     games: dict[str, dict[str, str]] = {}
     moddable_games: dict[str, InstalledGame] = {}
-    steam_apps: list[protontricks.SteamApp] = protontricks.get_steam_apps(protontricks.find_steam_path()[1], steam_path, libraries)
     for app in steam_apps:
         try:
             if app.appid and app.is_tool == False:
@@ -418,9 +406,9 @@ def list_installed_steam_games(steam_path: Path) -> dict[str, InstalledGame]:
     logging.debug(json.dumps(list(games.values()), indent=JSON_INDENT))
     return moddable_games
 
-def list_installed_gog_games(heroic_path: Path) -> dict[str, InstalledGame]:
+def list_compatible_gog_games(heroic_path: Path) -> dict[str, InstalledGame]:
     """
-    List all installed GOG games managed by Heroic (Flatpak).
+    List all compatible GOG games managed by Heroic (Flatpak).
     """
     gog_store_path = heroic_path / "gog_store" / "installed.json"
 
