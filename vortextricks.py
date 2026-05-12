@@ -165,7 +165,7 @@ def main() -> None:
     if using_bottles(wine_command):
         temp_dir = get_bottles_path(wine_command).parent.joinpath("temp")
         for bottle_name in set(bottle_names.values()):
-            programs = run(wine_command + ["--json", "programs", "-b", bottle_name], check=True, capture_output=True).stdout.decode("utf-8")
+            programs = run(wine_command + ["--json", "programs", "-b", bottle_name], check=True, capture_output=True, text=True).stdout
             if "Vortex.exe" not in programs:
                 temp_dir.mkdir(parents=True, exist_ok=True)
                 vortex_installer_path = download_vortex(temp_dir)
@@ -674,7 +674,7 @@ def handle_duplicates(
 
 def get_bottles_path(bottles_command: list[str]) -> Path:
     """Retrieve the path to the bottles directory."""
-    return Path(run(bottles_command + ["info", "bottles-path"], check=True, capture_output=True).stdout.decode("utf-8").strip())
+    return Path(run(bottles_command + ["info", "bottles-path"], check=True, capture_output=True, text=True).stdout.strip())
 
 @deprecated('xdg-mime seems to work despite the error message.')
 def fix_plasma6() -> subprocess.CompletedProcess | None:
