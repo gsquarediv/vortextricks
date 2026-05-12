@@ -138,7 +138,7 @@ def main() -> None:
     except (RuntimeError, subprocess.CalledProcessError) as e:
         if shutil.which("wine") is None:
             if shutil.which("dnf"):
-                command = ["sudo", "dnf", "install", "wine-common", "wine-mono", "wine-fonts", "wine-pulseaudio"]
+                command = ["sudo", "dnf", "install", "wine-common", "wine-mono", "wine-winefonts", "wine-pulseaudio"]
                 logging.info("WINE can be installed with the following command:\n%s", ' '.join(command))
             raise RuntimeError("Could not locate bottles-cli or wine") from e
         wine_command = ['wine']
