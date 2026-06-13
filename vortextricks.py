@@ -177,7 +177,7 @@ def main() -> None:
                 if shutil.which("xdg-mime") and len(set(bottle_names.values())) == 1:
                     # Don't set default handler if there are multiple bottles
                     run(["xdg-mime", "default", shortcut.name, "x-scheme-handler/nxm"], check=False)
-    elif not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists():
+    elif not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists() and not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Vortex/Vortex.exe").exists():
         temp_dir = Path("/tmp")
         vortex_installer_path = download_vortex(temp_dir)
         install_program(wine_command, vortex_installer_path)
