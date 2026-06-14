@@ -175,8 +175,20 @@ def main() -> int:
                 shortcut = shortcut_directory.joinpath(f"{bottle_name}.desktop")
                 shortcut.write_text(content, encoding='utf-8')
                 if shutil.which("xdg-mime") and len(set(bottle_names.values())) == 1:
-                    # Don't set default handler if there are multiple bottles
                     run(["xdg-mime", "default", shortcut.name, "x-scheme-handler/nxm"], check=False)
+        if shutil.which("xdg-mime") and len(set(bottle_names.items())) > 1:
+            print("\nChoose a default NXM handler:")
+            print("  0) None")
+            handler_choice:int | None = None
+            ctr = int(1)
+            for store, bottle_name in bottle_names.items():
+                print(f"  {ctr}) Use {bottle_name}")
+                ctr += 1
+            while handler_choice not in range(len(set(bottle_names.items())) + 1):
+                handler_choice = int(input(f"Enter choice (0-{len(set(bottle_names.items()))}): ").strip())
+            if handler_choice and handler_choice > 0:
+                shortcut = shortcut_directory.joinpath(f"{list(bottle_names.values())[handler_choice - 1]}.desktop")
+                run(["xdg-mime", "default", shortcut.name, "x-scheme-handler/nxm"], check=False)
     elif not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists() and not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Vortex/Vortex.exe").exists():
         temp_dir = Path("/tmp")
         vortex_installer_path = download_vortex(temp_dir)

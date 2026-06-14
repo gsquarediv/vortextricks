@@ -111,8 +111,7 @@ At the moment the script has no command‑line arguments; it is intended to be r
 After the script finishes, you may need to perform a few manual steps to complete the setup:
 
 - **Desktop shortcut & browser integration**  
-  - **Bottles** – The script automatically creates a hidden desktop shortcut for Vortex and registers the `nxm` MIME type for browser integration with [Nexus Mods](https://www.nexusmods.com/).  
-    > ⚠️ **Note:** If you choose to use separate bottles for duplicate games, a hidden desktop shortcut will be created for each bottle, but you will have to run `xdg-mime default` manually to select which instance of Vortex is the default handler for browser integration.
+  - **Bottles** – The script automatically creates a hidden desktop shortcut for Vortex and registers the `nxm` MIME type for browser integration with [Nexus Mods](https://www.nexusmods.com/)
   - **Native WINE** – Automatic MIME type configuration is not implemented.  You will have to manually configure MIME type integration for browser links to work with Vortex.  
 
 - **Game initialization**  
