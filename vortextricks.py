@@ -8,7 +8,7 @@ This script performs the following high-level tasks:
 1. **Detect installed game stores** - finds Steam and Heroic (GOG) installations.
 2. **Enumerate installed games** - builds a mapping of app-IDs to `InstalledGame` objects.
 3. **Resolve duplicate titles** - prompts the user to decide which copy of a game to keep
-   (Steam vs. GOG) and optionally creates separate Bottles bottles.
+   (Steam vs. GOG) and optionally creates separate bottles.
 4. **Create/locate WINE prefixes** - creates a Vortex-specific prefix.
 5. **Register games inside Vortex** - writes registry entries and symlinks for each game.
 6. **Install Vortex** - downloads the latest release from GitHub and installs it into the
@@ -652,7 +652,7 @@ def handle_duplicates(
         print(f"  2) Use GOG version   (AppID={gog_appid})")
         choice = ""
         if bottles:
-            print("  3) Separate bottles for each store")
+            print("  3) Separate bottle for each store")
             while choice not in ("1", "2", "3"):
                 choice = input("Enter 1, 2, or 3: ").strip()
         else:
