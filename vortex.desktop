@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Vortex (NXM)
 Type=Application
+Icon=wine
 Categories=Game;
 MimeType=x-scheme-handler/nxm
 Comment=Link Handler
