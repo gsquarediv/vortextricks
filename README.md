@@ -176,6 +176,12 @@ python -c "import jsonschema, json, pathlib; schema = json.load(open('gameinfo.s
 ## Contributing
 
 1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/…`).
+2. Create a new branch.
 3. Commit your changes with descriptive messages.
 4. Push the branch and open a pull request.
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/chart?repos=gsquarediv/vortextricks&type=date&theme=dark&legend=bottom-right)](https://www.star-history.com/?repos=gsquarediv%2Fvortextricks&type=date&legend=bottom-right)
