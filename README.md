@@ -169,7 +169,8 @@ python -c "import jsonschema, json, pathlib; schema = json.load(open('gameinfo.s
 | Duplicate game prompts not showing | The duplicate detection logic didn’t find overlapping game IDs | Ensure both stores are present and the game IDs match those in `gameinfo.json` |
 | Symlinks not working | Proton prefix path is wrong or the target does not exist | Verify the Proton prefix (default: `~/.local/share/Steam/steamapps/compatdata/<APPID>/pfx`) |
 | `ReadTimeout` errors | The installer could not be downloaded | Check internet connectivity or the GitHub API rate‑limit |
-| Vortex window does not render properly | OpenGL errors | Try any of the following: <ul><li> `__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json` <li> Set Renderer to GDI in Bottles <li> `winetricks renderer=gdi` <li> `Vortex.exe --disable-gpu` </ul> |
+| Vortex UI is not scaled properly | Your desktop environment has implemented user interface scaling in a retarded way | Try running Vortex with `--force-device-scale-factor=2` |
+| Vortex window does not render properly | OpenGL errors | Try any of the following: <ul><li> `__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json` (Nvidia only) <li> Set Renderer to GDI in Bottles <li> `winetricks renderer=gdi` <li> `Vortex.exe --disable-gpu` </ul> |
 
 ---
 
