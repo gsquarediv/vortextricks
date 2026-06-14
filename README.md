@@ -1,3 +1,5 @@
+<p align="center"><img width="512" height="512" alt="logo" src="logo.png" />
+
 # VortexTricks
 
 **Automate Vortex Mod Manager setup in Linux for Steam & Heroic**
