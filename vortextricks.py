@@ -177,7 +177,7 @@ def main() -> int:
                 shortcut.write_text(content, encoding='utf-8')
                 if shutil.which("xdg-mime") and len(set(bottle_names.values())) == 1:
                     run(["xdg-mime", "default", shortcut.name, "x-scheme-handler/nxm"], check=False)
-        if shutil.which("xdg-mime") and len(set(bottle_names.items())) > 1:
+        if shutil.which("xdg-mime") and len(set(bottle_names.values())) > 1:
             print("\nChoose a default NXM handler:")
             print("  0) None")
             handler_choice:int | None = None
