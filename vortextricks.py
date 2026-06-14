@@ -29,6 +29,7 @@ import logging
 import os
 import shutil
 import subprocess
+import tempfile
 import urllib.parse
 from pathlib import Path, PureWindowsPath, PurePosixPath
 from enum import Enum
@@ -191,7 +192,7 @@ def main() -> int:
                 shortcut = shortcut_directory.joinpath(f"{list(bottle_names.values())[handler_choice - 1]}.desktop")
                 run(["xdg-mime", "default", shortcut.name, "x-scheme-handler/nxm"], check=False)
     elif not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists() and not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Vortex/Vortex.exe").exists():
-        temp_dir = Path("/tmp")
+        temp_dir = Path(tempfile.gettempdir())
         vortex_installer_path = download_vortex(temp_dir)
         install_program(wine_command, vortex_installer_path)
         if shutil.which("update-desktop-database") and shortcut_directory.exists():
