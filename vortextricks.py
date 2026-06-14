@@ -80,7 +80,7 @@ os.environ['WINEDEBUG'] = 'fixme-all'
 with open('gameinfo.json', 'r', encoding='utf-8') as json_file:
     game_registry = gameinfo.load_games_from_json(json_file.read())
 
-def main() -> None:
+def main() -> int:
     """
     High-level orchestration of the Vortex setup workflow.
 
@@ -183,6 +183,8 @@ def main() -> None:
         install_program(wine_command, vortex_installer_path)
         if shutil.which("update-desktop-database") and shortcut_directory.exists():
             run(["update-desktop-database", str(shortcut_directory)], check=False, capture_output=True)
+    logging.info("Vortex installed and configured successfully.")
+    return 0
 
 def run(args: list[str], check: bool = True, **kwargs) -> subprocess.CompletedProcess:
     """Wrap subprocess.run() and automatically inject `run` for proton binaries."""
