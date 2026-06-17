@@ -73,11 +73,6 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
-
-# (Optional) Install the script globally
-#   pip install .
-#   # or create a symlink to the python script
-#   ln -s $(pwd)/vortextricks.py /usr/local/bin/vortextricks
 ```
 
 ---
@@ -85,11 +80,8 @@ pip install -r requirements.txt
 ## Usage
 
 ```bash
-# Run the script (it will create/verify the Vortex prefix and register all games)
+source venv/bin/activate # if not already activated
 ./vortextricks.py
-
-# If you installed it globally:
-vortextricks
 ```
 
 Upon execution, this script will:
@@ -113,11 +105,14 @@ At the moment the script has no command‑line arguments; it is intended to be r
 After the script finishes, you may need to perform a few manual steps to complete the setup:
 
 - **Desktop shortcut & browser integration**  
-  - **Bottles** – The script automatically creates a hidden desktop shortcut for Vortex and registers the `nxm` MIME type for browser integration with [Nexus Mods](https://www.nexusmods.com/)
+  - **Bottles** – No action required.  The script automatically creates a hidden desktop shortcut for Vortex and registers the `nxm` MIME type for browser integration with [Nexus Mods](https://www.nexusmods.com/)
   - **Native WINE** – Automatic MIME type configuration is not implemented.  You will have to manually configure MIME type integration for browser links to work with Vortex.  
 
+- **Window Decorations**  
+  I recommend disabling "Custom Window Title Bar" in the Vortex settings as the client-side decorations in Vortex can be finicky in some Window Managers.
+
 - **Game initialization**  
-  Any game to be modded needs to be ran once before attempting to mod it.  Otherwise, missing files may cause errors in Vortex.
+  Any game to be modded needs to be ran once before attempting to mod it.  Otherwise, missing files may cause errors in Vortex.  If you forget to add one of your games or install a new game later, you can just re-run `vortextricks.py` after initializing the new game.
 
 - **Mod staging folder**  
   Vortex needs a staging folder where it temporarily stores mods before deploying them.  When running Vortex in Bottles (Flatpak), the default suggestions seem to work pretty well.  You may be able to simply enable "Automatically use suggested path for staging folder" in Settings and let Vortex handle it.  If that does not work, you will have to manually set your staging folder for every game.
