@@ -165,7 +165,8 @@ def main() -> int:
     shortcut_directory = Path.home() / ".local" / "share" / "applications"
     if using_bottles(wine_command):
         temp_dir = get_bottles_path(wine_command).parent.joinpath("temp")
-        for bottle_name in set(bottle_names.values()):
+        unique_bottle_names = list(set(bottle_names.values()))
+        for bottle_name in unique_bottle_names:
             programs = run(wine_command + ["--json", "programs", "-b", bottle_name], check=True, capture_output=True, text=True).stdout
             if "Vortex.exe" not in programs:
                 temp_dir.mkdir(parents=True, exist_ok=True)
@@ -176,20 +177,20 @@ def main() -> int:
                 content += f'\nExec={" ".join(wine_command)} run -p Vortex -b "{bottle_name}" -- -d "%u"'
                 shortcut = shortcut_directory.joinpath(f"{bottle_name}.desktop")
                 shortcut.write_text(content, encoding='utf-8')
-                if shutil.which("xdg-mime") and len(set(bottle_names.values())) == 1:
+                if shutil.which("xdg-mime") and len(unique_bottle_names) == 1:
                     run(["xdg-mime", "default", shortcut.name, "x-scheme-handler/nxm"], check=False)
-        if shutil.which("xdg-mime") and len(set(bottle_names.values())) > 1:
+        if shutil.which("xdg-mime") and len(unique_bottle_names) > 1:
             print("\nChoose a default NXM handler:")
             print("  0) None")
             handler_choice:int | None = None
             ctr = int(1)
-            for store, bottle_name in bottle_names.items():
+            for bottle_name in unique_bottle_names:
                 print(f"  {ctr}) Use {bottle_name}")
                 ctr += 1
-            while handler_choice not in range(len(set(bottle_names.items())) + 1):
-                handler_choice = int(input(f"Enter choice (0-{len(set(bottle_names.items()))}): ").strip())
+            while handler_choice not in range(len(unique_bottle_names) + 1):
+                handler_choice = int(input(f"Enter choice (0-{len(unique_bottle_names)}): ").strip())
             if handler_choice and handler_choice > 0:
-                shortcut = shortcut_directory.joinpath(f"{list(bottle_names.values())[handler_choice - 1]}.desktop")
+                shortcut = shortcut_directory.joinpath(f"{unique_bottle_names[handler_choice - 1]}.desktop")
                 run(["xdg-mime", "default", shortcut.name, "x-scheme-handler/nxm"], check=False)
     elif not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists() and not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Vortex/Vortex.exe").exists():
         temp_dir = Path(tempfile.gettempdir())
