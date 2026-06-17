@@ -165,7 +165,7 @@ def main() -> int:
     shortcut_directory = Path.home() / ".local" / "share" / "applications"
     if using_bottles(wine_command):
         temp_dir = get_bottles_path(wine_command).parent.joinpath("temp")
-        unique_bottle_names = list(set(bottle_names.values()))
+        unique_bottle_names = sorted(list(set(bottle_names.values())), key=str.lower)
         for bottle_name in unique_bottle_names:
             programs = run(wine_command + ["--json", "programs", "-b", bottle_name], check=True, capture_output=True, text=True).stdout
             if "Vortex.exe" not in programs:
