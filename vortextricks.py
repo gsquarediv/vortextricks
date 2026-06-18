@@ -17,7 +17,6 @@ This script performs the following high-level tasks:
 The module relies on several helper modules:
 
 - `protontricks` - to locate the Steam installation.
-- `vdf` - to parse Steam's `libraryfolders.vdf` and `appmanifest_*.acf` files.
 - `gameinfo` - provides a registry of known games and their metadata.
 - `vortex_symlink` - handles creation of game-specific symlinks.
 - `requests` - for downloading the Vortex installer.
@@ -138,9 +137,6 @@ def main() -> int:
             prefixes = {Store.STEAM: vortex_prefix, Store.GOG: vortex_prefix}
     except (RuntimeError, subprocess.CalledProcessError) as e:
         if shutil.which("wine") is None:
-            if shutil.which("dnf"):
-                command = ["sudo", "dnf", "install", "wine-common", "wine-mono", "wine-winefonts", "wine-pulseaudio"]
-                logging.info("WINE can be installed with the following command:\n%s", ' '.join(command))
             raise RuntimeError("Could not locate bottles-cli or wine") from e
         wine_command = ['wine']
         if duplicates:
