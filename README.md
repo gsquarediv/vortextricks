@@ -8,12 +8,12 @@ VortexTricks is a lightweight, self‑contained Python utility that
 
 * Detects your Steam and Heroic installations
 * Resolves duplicate titles between your Steam and GOG libraries
-* Creates the necessary WINE prefix / WINE bottles
+* Creates the necessary WINE prefix(es)
 * Registers the games inside Vortex by adding the correct registry keys and
   creating save‑game / `AppData` symlinks
 * Downloads and installs the latest Vortex release
 
-> **⚠️ Disclaimer** – This project is provided as-is. Use it at your own risk.
+> ⚠️ **Disclaimer** – This project is provided as-is. Use it at your own risk.
 
 ---
 
@@ -27,6 +27,7 @@ VortexTricks is a lightweight, self‑contained Python utility that
 6. [Extending the Game Registry](#extending-the-game-registry)
 7. [Troubleshooting](#troubleshooting)
 8. [Contributing](#contributing)
+9. [Star History](#star-history)
 
 ---
 
@@ -45,18 +46,22 @@ VortexTricks is a lightweight, self‑contained Python utility that
 
 ## Prerequisites
 
+### Software
+
 | Item | Requirement | Notes |
 |------|-------------|-------|
-| **Linux** | Any | Tested with Fedora Linux 43 (KDE Plasma Desktop Edition) |
+| **Linux** | Any | Tested with Fedora Linux 43 and 44 |
 | **Python** | 3.9+ | Tested with 3.14 |
-| **WINE / Bottles** | Required for running Windows binaries | Either vanilla WINE or Bottles (flatpak or native) |
-| **Flatpak** | Optional | If you use Bottles via Flatpak |
-| **Steam** | Optional | Game store |
-| **Heroic (GOG)** | Optional | Game store |
+| **Bottles** | Required | Required for running Windows binaries |
+| **Flatpak** | Required | Required for Bottles |
+| **Steam** | Optional | Required for Steam games |
+| **Heroic Games Launcher** | Optional | Required for GOG games |
 | **`protontricks`** | pip package | Used to find Steam |
 | **`requests`** | pip package | For downloading the Vortex installer |
-| **`vdf`** | pip package | For parsing Steam VDF files |
 | **`jsonschema`** | pip package | For validating `gameinfo.json` |
+
+### Game initialization
+  Any game to be modded needs to be ran once before attempting to mod it.  Otherwise, missing files may cause errors in Vortex.  If you forget to add one of your games or install a new game later, you can just re-run `vortextricks.py` after initializing the new game.
 
 ---
 
@@ -72,7 +77,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ---
@@ -83,6 +88,8 @@ pip install -r requirements.txt
 source venv/bin/activate # if not already activated
 ./vortextricks.py
 ```
+
+⚠️ **Reboot** before launching Vortex
 
 Upon execution, this script will:
 
@@ -96,7 +103,7 @@ Upon execution, this script will:
 
 ### Command‑Line Options
 
-At the moment the script has no command‑line arguments; it is intended to be run once during initial setup.  If you wish to run a specific step or skip interactive prompts, you can modify the script directly.
+At the moment the script has no command‑line arguments.
 
 ---
 
@@ -104,18 +111,11 @@ At the moment the script has no command‑line arguments; it is intended to be r
 
 After the script finishes, you may need to perform a few manual steps to complete the setup:
 
-- **Desktop shortcut & browser integration**  
-  - **Bottles** – No action required.  The script automatically creates a hidden desktop shortcut for Vortex and registers the `nxm` MIME type for browser integration with [Nexus Mods](https://www.nexusmods.com/)
-  - **Native WINE** – Automatic MIME type configuration is not implemented.  You will have to manually configure MIME type integration for browser links to work with Vortex.  
-
 - **Window Decorations**  
   I recommend disabling "Custom Window Title Bar" in the Vortex settings as the client-side decorations in Vortex can be finicky in some Window Managers.
 
-- **Game initialization**  
-  Any game to be modded needs to be ran once before attempting to mod it.  Otherwise, missing files may cause errors in Vortex.  If you forget to add one of your games or install a new game later, you can just re-run `vortextricks.py` after initializing the new game.
-
 - **Mod staging folder**  
-  Vortex needs a staging folder where it temporarily stores mods before deploying them.  When running Vortex in Bottles (Flatpak), the default suggestions seem to work pretty well.  You may be able to simply enable "Automatically use suggested path for staging folder" in Settings and let Vortex handle it.  If that does not work, you will have to manually set your staging folder for every game.
+  Vortex needs a staging folder where it temporarily stores mods before deploying them.  When running Vortex in Bottles (Flatpak), the default suggestions seem to work pretty well.  You may be able to simply enable "Automatically use suggested path for staging folder" in Settings and let Vortex handle it.  If that does not work, you will have to manually set your staging folder.
 
 ---
 
@@ -150,7 +150,7 @@ python -c "import jsonschema, json, pathlib; schema = json.load(open('gameinfo.s
 
 3. Rerun the script – the new game will now be recognized.
 
-> **Tip** – The `registry_entries` dictionary keys are the full registry paths; the values are the string data that will be written.
+> **Tip** – The `registry_entries` dictionary key is the full registry path; the value is the name of the key.  `vortextricks.py` will insert the game path as the value of the key.
 
 ---
 
@@ -158,12 +158,9 @@ python -c "import jsonschema, json, pathlib; schema = json.load(open('gameinfo.s
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `protontricks` cannot find Steam | Steam is not installed or the environment path is missing | Install Steam or set `STEAM_HOME` |
-| Wine fails to create the prefix | Missing Wine binary or broken permissions | Install `wine` (`sudo dnf install wine` on Fedora) |
-| `bottles-cli` errors | `bottles-cli` not found and `flatpak` is missing | Install Bottles via `flatpak install com.usebottles.bottles` or use vanilla WINE |
-| Duplicate game prompts not showing | The duplicate detection logic didn’t find overlapping game IDs | Ensure both stores are present and the game IDs match those in `gameinfo.json` |
-| Symlinks not working | Proton prefix path is wrong or the target does not exist | Verify the Proton prefix (default: `~/.local/share/Steam/steamapps/compatdata/<APPID>/pfx`) |
-| `ReadTimeout` errors | The installer could not be downloaded | Check internet connectivity or the GitHub API rate‑limit |
+| ModuleNotFoundError | Virtual environment not active or requirements not installed | See [Installation](#installation) |
+| RuntimeError: Could not locate bottles-cli | [Prerequisites](#prerequisites) not installed. | Install Bottles via `flatpak install com.usebottles.bottles` |
+| Duplicate game prompts not showing | The duplicate detection logic didn’t find overlapping game IDs | Ensure both game IDs are in `gameinfo.json` |
 | Vortex UI is not scaled properly | Your desktop environment has implemented user interface scaling in a retarded way | Try running Vortex with `--force-device-scale-factor=2` |
 | Vortex window does not render properly | OpenGL errors | Try any of the following: <ul><li> `__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json` (Nvidia only) <li> Set Renderer to GDI in Bottles <li> `winetricks renderer=gdi` <li> `Vortex.exe --disable-gpu` </ul> |
 
