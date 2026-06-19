@@ -6,3 +6,4 @@ Categories=Game;
 MimeType=x-scheme-handler/nxm
 Comment=Link Handler
 NoDisplay=true
+Terminal=false
