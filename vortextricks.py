@@ -168,6 +168,7 @@ def main() -> int:
                 temp_dir.mkdir(parents=True, exist_ok=True)
                 vortex_installer_path = download_vortex(temp_dir)
                 install_program(wine_command, vortex_installer_path, bottle_name)
+                run(wine_command + ["edit", "-b", bottle_name, "--params", "decorated:false"], check=True, capture_output=True)
                 content = Path('vortex.desktop').read_text(encoding='utf-8')
                 content = content.replace("Name=Vortex (NXM)", f"Name={bottle_name} (NXM)")
                 content += f'\nExec={" ".join(wine_command)} run -p Vortex -b "{bottle_name}" -- -d "%u"'

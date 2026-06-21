@@ -111,9 +111,6 @@ At the moment the script has no command‑line arguments.
 
 After the script finishes, you may need to perform a few manual steps to complete the setup:
 
-- **Window Decorations**  
-  I recommend disabling "Custom Window Title Bar" in the Vortex settings as the client-side decorations in Vortex can be finicky in some Window Managers.
-
 - **Mod staging folder**  
   Vortex needs a staging folder where it temporarily stores mods before deploying them.  When running Vortex in Bottles (Flatpak), the default suggestions seem to work pretty well.  You may be able to simply enable "Automatically use suggested path for staging folder" in Settings and let Vortex handle it.  If that does not work, you will have to manually set your staging folder.
 
