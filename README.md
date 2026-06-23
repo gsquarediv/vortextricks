@@ -160,6 +160,7 @@ python -c "import jsonschema, json, pathlib; schema = json.load(open('gameinfo.s
 | Duplicate game prompts not showing | The duplicate detection logic didn’t find overlapping game IDs | Ensure both game IDs are in `gameinfo.json` |
 | Vortex UI is not scaled properly | Your desktop environment has implemented user interface scaling in a retarded way | Try running Vortex with `--force-device-scale-factor=2` |
 | Vortex window does not render properly | OpenGL errors | Try any of the following: <ul><li> `__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json` (Nvidia only) <li> Set Renderer to GDI in Bottles <li> `winetricks renderer=gdi` <li> `Vortex.exe --disable-gpu` </ul> |
+| fallout.ini keeps getting reset when launching the game | FalloutNVLauncher.exe is being launched instead of nvse_loader.exe | Use the following launch option: `bash -c "DO=(%command%); \"\${DO[@]/%FalloutNVLauncher.exe/nvse_loader.exe}\""` |
 
 ---
 
