@@ -166,7 +166,7 @@ def main() -> int:
             programs = run(wine_command + ["--json", "programs", "-b", bottle_name], check=True, capture_output=True, text=True).stdout
             if "Vortex.exe" not in programs:
                 temp_dir.mkdir(parents=True, exist_ok=True)
-                vortex_installer_path = download_vortex(temp_dir)
+                vortex_installer_path = download_vortex(temp_dir, "v1.16.9")
                 install_program(wine_command, vortex_installer_path, bottle_name)
                 run(wine_command + ["edit", "-b", bottle_name, "--params", "decorated:false"], check=True, capture_output=True)
                 content = Path('vortex.desktop').read_text(encoding='utf-8')
@@ -191,7 +191,7 @@ def main() -> int:
                 run(["xdg-mime", "default", shortcut.name, "x-scheme-handler/nxm"], check=False)
     elif not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe").exists() and not Path(Path(os.environ['WINEPREFIX']) / "drive_c/Program Files/Vortex/Vortex.exe").exists():
         temp_dir = Path(tempfile.gettempdir())
-        vortex_installer_path = download_vortex(temp_dir)
+        vortex_installer_path = download_vortex(temp_dir, "v1.16.9")
         install_program(wine_command, vortex_installer_path)
         if shutil.which("update-desktop-database") and shortcut_directory.exists():
             run(["update-desktop-database", str(shortcut_directory)], check=False, capture_output=True)
