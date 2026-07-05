@@ -1,6 +1,6 @@
 <p align="center"><img width="512" height="512" alt="logo" src="logo.png" />
 
-# VortexTricks
+# VortexTricks: GNU Vegas
 
 **Automate Vortex Mod Manager setup in Linux for Steam & Heroic**
 
@@ -13,21 +13,20 @@ VortexTricks is a lightweight, self‑contained Python utility that
   creating save‑game / `AppData` symlinks
 * Downloads and installs the latest Vortex release
 
-> ⚠️ **Disclaimer** – This project is provided as-is. Use it at your own risk.
-
 ---
 
 ## Table of Contents
 
 1. [Features](#features)
-2. [Prerequisites](#prerequisites)
-3. [Installation](#installation)
-4. [Usage](#usage)
-5. [Manual Post‑Execution Steps](#manual-postexecution-steps)
-6. [Extending the Game Registry](#extending-the-game-registry)
-7. [Troubleshooting](#troubleshooting)
-8. [Contributing](#contributing)
-9. [Star History](#star-history)
+2. [Game Support](#game-support)
+3. [Prerequisites](#prerequisites)
+4. [Installation](#installation)
+5. [Usage](#usage)
+6. [Manual Post‑Execution Steps](#manual-postexecution-steps)
+7. [Contributing](#contributing)
+8. [Extending the Game Registry](#extending-the-game-registry)
+9. [Troubleshooting](#troubleshooting)
+10. [Star History](#star-history)
 
 ---
 
@@ -44,6 +43,20 @@ VortexTricks is a lightweight, self‑contained Python utility that
 
 ---
 
+## Game Support
+
+VortexTricks currently supports the games below out of the box, but can be extended to support any game that can be ran under Proton and modded with Vortex.  See [Extending the Game Registry](#extending-the-game-registry) for information on how to add more games.
+
+* Elder Scrolls III, The: Morrowind
+* Elder Scrolls IV, The: Oblivion
+* Elder Scrolls V, The: Skyrim
+* Elder Scrolls V, The: Skyrim Special Edition
+* Fallout 3
+* Fallout: New Vegas
+* Fallout 4
+
+---
+
 ## Prerequisites
 
 ### Software
@@ -56,6 +69,7 @@ VortexTricks is a lightweight, self‑contained Python utility that
 | **Flatpak** | Required | Required for Bottles |
 | **Steam** | Optional | Required for Steam games |
 | **Heroic Games Launcher** | Optional | Required for GOG games |
+| **Proton-GE or Proton-CachyOS** | Recommended | Includes protonfixes to enable script extenders |
 | **`protontricks`** | pip package | Used to find Steam |
 | **`requests`** | pip package | For downloading the Vortex installer |
 | **`jsonschema`** | pip package | For validating `gameinfo.json` |
@@ -116,7 +130,16 @@ After the script finishes, you may need to perform a few manual steps to complet
 
 ---
 
-## Extending the Game Registry
+## Contributing
+
+1. Fork the repository.
+2. Create a new branch.
+3. Commit your changes with descriptive messages.
+4. Push the branch and open a pull request.
+
+---
+
+### Extending the Game Registry
 
 The registry of known games is stored in `gameinfo.json`.  
 To add a new game:
@@ -160,16 +183,7 @@ python -c "import jsonschema, json, pathlib; schema = json.load(open('gameinfo.s
 | Duplicate game prompts not showing | The duplicate detection logic didn’t find overlapping game IDs | Ensure both game IDs are in `gameinfo.json` |
 | Vortex UI is not scaled properly | Your desktop environment has implemented user interface scaling in a retarded way | Try running Vortex with `--force-device-scale-factor=2` |
 | Vortex window does not render properly | OpenGL errors | Try any of the following: <ul><li> `__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json` (Nvidia only) <li> Set Renderer to GDI in Bottles <li> `winetricks renderer=gdi` <li> `Vortex.exe --disable-gpu` </ul> |
-| fallout.ini keeps getting reset when launching the game | FalloutNVLauncher.exe is being launched instead of nvse_loader.exe | Use the following launch option: `bash -c "DO=(%command%); \"\${DO[@]/%FalloutNVLauncher.exe/nvse_loader.exe}\""` |
-
----
-
-## Contributing
-
-1. Fork the repository.
-2. Create a new branch.
-3. Commit your changes with descriptive messages.
-4. Push the branch and open a pull request.
+| fallout.ini keeps getting reset when launching the game | FalloutNVLauncher.exe is being launched instead of nvse_loader.exe | Use Proton-GE or Proton-CachyOS<br>OR<br>use the following launch option with Valve Proton: `bash -c "DO=(%command%); \"\${DO[@]/%FalloutNVLauncher.exe/nvse_loader.exe}\""`<br><br>Note: Proton-GE 11-1, Proton-CachyOS 11.0-20260602 or older need the following additional step for Fallout: New Vegas:<br>```mkdir -p ~/.config/protonfixes/localfixes && curl -fsSL -o ~/.config/protonfixes/localfixes/22380.py https://raw.githubusercontent.com/Open-Wine-Components/umu-protonfixes/refs/heads/master/gamefixes-steam/22330.py && chmod +x ~/.config/protonfixes/localfixes/22380.py``` |
 
 ---
 
