@@ -171,7 +171,7 @@ def main() -> int:
                 run(wine_command + ["edit", "-b", bottle_name, "--params", "decorated:false"], check=True, capture_output=True)
                 content = Path('vortex.desktop').read_text(encoding='utf-8')
                 content = content.replace("Name=Vortex (NXM)", f"Name={bottle_name} (NXM)")
-                content += f'\nExec={" ".join(wine_command)} run -p Vortex -b "{bottle_name}" -- -d "%u"'
+                content += f'\nExec={" ".join(wine_command)} run -p Vortex -b "{bottle_name}" -- -d %u'
                 shortcut = shortcut_directory.joinpath(f"{bottle_name}.desktop")
                 shortcut.write_text(content, encoding='utf-8')
                 if shutil.which("xdg-mime") and len(unique_bottle_names) == 1:
