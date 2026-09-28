@@ -40,7 +40,7 @@ import requests
 
 import vortex_symlink
 import gameinfo
-from gameinfo import JSON_INDENT
+from gameinfo import InstalledGame, JSON_INDENT
 
 class Store(Enum):
     """Enumeration of supported game distribution platforms.
@@ -54,17 +54,6 @@ class Store(Enum):
     """
     STEAM = "Steam"
     GOG = "GOG"
-
-@dataclass
-class InstalledGame(gameinfo.GameInfo):
-    """Represents an installed game, combining game information with its installation path.
-    
-    Extends GameInfo with the game's installation directory path for Vortex management.
-    
-    Attributes:
-        game_path: The Path object pointing to the game's installation directory.
-    """
-    game_path: Path = field(default_factory=Path)
 
 BOTTLES_PACKAGE = 'com.usebottles.bottles'
 
