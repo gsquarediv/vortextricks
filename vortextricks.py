@@ -42,14 +42,18 @@ import gameinfo
 from gameinfo import InstalledGame, JSON_INDENT
 
 class Store(Enum):
-    """Enumeration of supported game distribution platforms.
+    """
+    Enumeration of supported game distribution platforms.
 
     Represents the primary store platform for a game's distribution.
     Currently supports Steam and GOG, with potential for expansion.
 
-    Attributes:
-        STEAM: Represents Steam platform (App IDs in steamapp_ids)
-        GOG: Represents GOG/heroic platform (IDs in gog_id)
+    Attributes
+    ----------
+    STEAM : Store
+        Represents Steam platform (App IDs in steamapp_ids).
+    GOG : Store
+        Represents GOG/heroic platform (IDs in gog_id).
     """
     STEAM = "Steam"
     GOG = "GOG"
@@ -73,11 +77,17 @@ def main() -> int:
     High-level orchestration of the Vortex setup workflow.
 
     Steps:
+
     1. Enumerate installed Steam/GOG games.
     2. Detect if the user is using Bottles or WINE.
     3. Create WINE prefix(es) for Vortex if necessary.
     4. Register the games inside the prefix.
     5. Ensure Vortex is installed; otherwise download & install it.
+
+    Returns
+    -------
+    int
+        Process exit code (0 on success).
     """
 
     steam_path, steam_root = protontricks.find_steam_path()
@@ -187,7 +197,32 @@ def main() -> int:
     return 0
 
 def run(args: list[str], check: bool = True, **kwargs) -> subprocess.CompletedProcess:
-    """Wrap subprocess.run() and automatically inject `run` for proton binaries."""
+    """
+    Wrap subprocess.run() and automatically inject `run` for proton binaries.
+
+    Expands user (~) and environment variables in the executable name,
+    prefers sudo-rs over sudo when available, and injects the `run`
+    subcommand when the executable is a proton binary.
+
+    Parameters
+    ----------
+    args : list[str]
+        Command and arguments to execute.
+    check : bool, optional
+        Whether to raise on a non-zero exit code (default True).
+    **kwargs
+        Additional keyword arguments forwarded to subprocess.run().
+
+    Returns
+    -------
+    subprocess.CompletedProcess
+        Result of the executed command.
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If `check` is True and the command exits non-zero.
+    """
     # Expand user (~) and environment vars
     command = os.path.expanduser(args[0])
     command = os.path.expandvars(command)
@@ -205,7 +240,19 @@ def run(args: list[str], check: bool = True, **kwargs) -> subprocess.CompletedPr
     return subprocess.run(args, check=check, **kwargs)
 
 def detect_bottles() -> list[str]:
-    """Return the first found bottles CLI or raise an exception."""
+    """
+    Return the first found bottles CLI command.
+
+    Returns
+    -------
+    list[str]
+        Command list that invokes bottles-cli, either directly or via flatpak.
+
+    Raises
+    ------
+    RuntimeError
+        If neither a working bottles-cli nor flatpak can be located.
+    """
     if shutil.which("bottles-cli") is not None:
         return ["bottles-cli"]
     elif shutil.which("flatpak") is not None:
@@ -218,22 +265,45 @@ def detect_bottles() -> list[str]:
         raise RuntimeError("Could not locate bottles-cli or flatpak")
 
 def using_bottles(wine_command: list[str]) -> bool:
-    """Return whether the given command uses bottles."""
+    """
+    Return whether the given command uses bottles.
+
+    Parameters
+    ----------
+    wine_command : list[str]
+        The wine or bottles command list to inspect.
+
+    Returns
+    -------
+    bool
+        True if the command invokes bottles-cli, False otherwise.
+    """
     return "bottles-cli" in wine_command or "--command=bottles-cli" in wine_command
 
 def is_existing_bottle(bottles_command: list[str], bottle_name: str = "Vortex") -> bool:
     """
-    Check if a specific game bottle exists in Vortex's configuration.
-    
-    Executes the provided command with --json flag to list bottles, parses the JSON output,
-    and verifies if the specified bottle name exists in the configuration.
-    
-    Parameters:
-        bottles_command (list[str]): Base command to interact with Vortex (e.g., ['vortex', 'bottles'])
-        bottle_name (str, optional): Name of the bottle to check, defaults to "Vortex"
-        
-    Returns:
-        bool: True if the bottle exists, False otherwise
+    Check if a specific bottle exists in the Bottles configuration.
+
+    Executes the provided command with --json flag to list bottles, parses the
+    JSON output, and verifies if the specified bottle name exists in the
+    configuration.
+
+    Parameters
+    ----------
+    bottles_command : list[str]
+        Base command to interact with Bottles (e.g., ['bottles-cli']).
+    bottle_name : str, optional
+        Name of the bottle to check (default: "Vortex").
+
+    Returns
+    -------
+    bool
+        True if the bottle exists, False otherwise.
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If the bottles list command exits non-zero.
     """
     bottles: dict[str, Any] = json.loads(run(bottles_command + ["--json", "list", "bottles"], check=True, capture_output=True).stdout)
     bottle = bottles.get(bottle_name)
@@ -245,17 +315,27 @@ def is_existing_bottle(bottles_command: list[str], bottle_name: str = "Vortex") 
 
 def create_bottle(bottles_command: list[str], bottle_name: str = "Vortex") -> Path:
     """
-    Create a new game bottle with the appropriate runner configuration.
-    
-    Selects either the sys-wine runner or a default runner based on available components,
-    then creates a new bottle with the specified name.
-    
-    Args:
-        bottles_command: List of command-line arguments for the bottles tool.
-        bottle_name: Name of the new bottle (default: "Vortex").
-        
-    Returns:
+    Create a new bottle with the appropriate runner configuration.
+
+    Selects either the sys-wine runner or a default runner based on available
+    components, then creates a new bottle with the specified name.
+
+    Parameters
+    ----------
+    bottles_command : list[str]
+        List of command-line arguments for the bottles tool.
+    bottle_name : str, optional
+        Name of the new bottle (default: "Vortex").
+
+    Returns
+    -------
+    Path
         Path object pointing to the created bottle's directory.
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If a bottles command exits non-zero.
     """
     fix_bottles_permissions()
     components = json.loads(run(bottles_command + ["--json", "list", "components"], check=True, capture_output=True).stdout)
@@ -277,13 +357,14 @@ def create_bottle(bottles_command: list[str], bottle_name: str = "Vortex") -> Pa
 def find_vortex_prefix() -> Path:
     """
     Locate or create the WINEPREFIX directory for Vortex Wine configuration.
-    
-    Checks if the 'WINEPREFIX' environment variable is set. If not, 
-    defaults to creating a directory at $HOME/Games/vortex/pfx. 
-    Returns the Path object for the configured WINEPREFIX.
-    
-    Returns:
-        pathlib.Path: The absolute path to the Vortex Wine prefix directory
+
+    Checks if the 'WINEPREFIX' environment variable is set. If not,
+    defaults to creating a directory at $HOME/Games/vortex/pfx.
+
+    Returns
+    -------
+    Path
+        The absolute path to the Vortex Wine prefix directory.
     """
     if 'WINEPREFIX' not in os.environ:
         os.environ['WINEPREFIX'] = str(Path.home() / 'Games/vortex/pfx')
@@ -295,14 +376,16 @@ def find_heroic() -> Path | None:
     Locate the Heroic games launcher configuration directory.
 
     Searches for the default configuration path used by the Heroic games
-    launcher (now part of GOG's platform). Returns the path if it exists,
-    otherwise returns None.
-
-    The default path is constructed as:
-    ~/.var/app/com.heroicgameslauncher.hgl/config/heroic
+    launcher (now part of GOG's platform).  The default path is constructed
+    as: ~/.var/app/com.heroicgameslauncher.hgl/config/heroic
 
     This is used to locate game-specific configuration files for GOG games
     managed through the Heroic launcher.
+
+    Returns
+    -------
+    Path | None
+        The Heroic configuration directory if it exists, otherwise None.
     """
     path = Path.home() / ".var/app/com.heroicgameslauncher.hgl/config/heroic"
     if path.exists():
@@ -310,17 +393,26 @@ def find_heroic() -> Path | None:
 
 def create_wine_prefix(proton_path: str | None = None) -> subprocess.CompletedProcess:
     """
-    Creates the WINEPREFIX directory and initializes Wine configuration.
-    
+    Create the WINEPREFIX directory and initialize Wine configuration.
+
     Ensures the WINEPREFIX environment directory exists, then executes
-    `wineboot -u` to initialize Wine. If proton_path is provided, it uses
+    `wineboot -u` to initialize Wine.  If proton_path is provided, it uses
     that executable instead of the default Wine binary.
-    
-    Parameters:
-        proton_path (str | None): Optional path to Proton/Wine executable
-    
-    Returns:
-        subprocess.CompletedProcess: Result of the wineboot command execution
+
+    Parameters
+    ----------
+    proton_path : str | None, optional
+        Optional path to Proton/Wine executable (default: None).
+
+    Returns
+    -------
+    subprocess.CompletedProcess
+        Result of the wineboot command execution.
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If wineboot exits non-zero.
     """
     os.makedirs(os.environ['WINEPREFIX'], exist_ok=True)
     if proton_path is None:
@@ -330,11 +422,34 @@ def create_wine_prefix(proton_path: str | None = None) -> subprocess.CompletedPr
 
 def configure_vortex_environment(wine_command: list[str], store: Store, library: dict[str, InstalledGame], vortex_prefix: Path, bottle_name: str = "Vortex") -> None:
     """
-    Register the games that are already in the user's library inside the Vortex
-    bottle.  `library` is the dict returned by ``list_installed_*_games`` - it
-    maps an app-id to an ``InstalledGame`` instance.
-    Raises:
-       ValueError:
+    Register the games in the user's library inside the Vortex bottle.
+
+    For each game, adds the registry entries known to the game registry and
+    creates game-specific symlinks between the Proton/Heroic prefix and the
+    Vortex prefix.
+
+    Parameters
+    ----------
+    wine_command : list[str]
+        The wine or bottles command list to use.
+    store : Store
+        The store platform the library belongs to.
+    library : dict[str, InstalledGame]
+        Mapping of app-id to `InstalledGame` instance, as returned by
+        ``list_compatible_steam_games`` or ``list_compatible_gog_games``.
+    vortex_prefix : Path
+        Path to the Vortex Wine prefix.
+    bottle_name : str, optional
+        Name of the bottle to register the games in (default: "Vortex").
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    ValueError
+        If a GOG game is missing its GOG ID.
     """
     for app_id, installed_game in library.items():
         # Look up the game metadata in the registry
@@ -377,13 +492,18 @@ def configure_vortex_environment(wine_command: list[str], store: Store, library:
 
 def list_compatible_steam_games(steam_apps: list[protontricks.SteamApp]) -> dict[str, InstalledGame]:
     """
-    Returns a list of compatible Steam games (name, appid, and install path).
+    Return the installed Steam games that are known to be moddable.
 
-    Parameters:
-        steam_apps (list[protontricks.SteamApp]): A list of SteamApp objects.
+    Parameters
+    ----------
+    steam_apps : list[protontricks.SteamApp]
+        A list of SteamApp objects to filter.
 
-    Returns:
-        list[dict]: A list of dicts with keys: name, appid, and path.
+    Returns
+    -------
+    dict[str, InstalledGame]
+        Mapping of Steam app-id to an `InstalledGame` for each game found in
+        the registry.
     """
     games: dict[str, dict[str, str]] = {}
     moddable_games: dict[str, InstalledGame] = {}
@@ -410,6 +530,24 @@ def list_compatible_steam_games(steam_apps: list[protontricks.SteamApp]) -> dict
 def list_compatible_gog_games(heroic_path: Path) -> dict[str, InstalledGame]:
     """
     List all compatible GOG games managed by Heroic (Flatpak).
+
+    Parameters
+    ----------
+    heroic_path : Path
+        Path to the Heroic configuration directory.
+
+    Returns
+    -------
+    dict[str, InstalledGame]
+        Mapping of app-id to an `InstalledGame` for each game found in the
+        registry.
+
+    Raises
+    ------
+    FileNotFoundError
+        If Heroic's gog_store/installed.json is missing.
+    TypeError
+        If the 'installed' section is not a list.
     """
     gog_store_path = heroic_path / "gog_store" / "installed.json"
 
@@ -450,21 +588,35 @@ def list_compatible_gog_games(heroic_path: Path) -> dict[str, InstalledGame]:
 
 def add_registry_entry(wine_command: list[str], key: str, value: str, data: str, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
     """
-    Adds a registry entry using Wine's reg command, handling both bottled and non-bottled environments.
-    
+    Add a registry entry using Wine's reg command, bottled or not.
+
     Constructs and executes a registry add command via Wine, supporting:
+
     - Bottled environments with specified bottle name
     - Non-bottled environments
-    
-    Parameters:
-        wine_command: Base Wine command list for execution
-        key: Registry key path (e.g., "HKEY_CURRENT_USER\\Software")
-        value: Registry value name
-        data: Registry data
-        bottle_name: Name of the wine bottle to use (default: "Vortex")
-    
-    Returns:
-        subprocess.CompletedProcess: Result of the registry operation
+
+    Parameters
+    ----------
+    wine_command : list[str]
+        Base Wine command list for execution.
+    key : str
+        Registry key path (e.g., "HKEY_CURRENT_USER\\Software").
+    value : str
+        Registry value name.
+    data : str
+        Registry data.
+    bottle_name : str, optional
+        Name of the wine bottle to use (default: "Vortex").
+
+    Returns
+    -------
+    subprocess.CompletedProcess
+        Result of the registry operation.
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If the reg command exits non-zero.
     """
     if using_bottles(wine_command):
         result = run(wine_command + ["reg", "-b", bottle_name, "-k",
@@ -478,7 +630,29 @@ def add_registry_entry(wine_command: list[str], key: str, value: str, data: str,
     return result
 
 def download(url: str | bytes, destination: Path) -> Path:
-    """Download a file from a URL using requests."""
+    """
+    Download a file from a URL using requests.
+
+    If `destination` is an existing directory, the file is saved inside it
+    under the name taken from the final response URL.
+
+    Parameters
+    ----------
+    url : str | bytes
+        URL to download.
+    destination : Path
+        Destination file path, or an existing directory to save into.
+
+    Returns
+    -------
+    Path
+        The path the file was actually written to.
+
+    Raises
+    ------
+    requests.exceptions.RequestException
+        If the request fails or the server returns an error status.
+    """
     logging.info("Downloading %s to %s", url, destination)
     response = requests.get(url, stream=True, timeout=10)
     response.raise_for_status()
@@ -491,23 +665,32 @@ def download(url: str | bytes, destination: Path) -> Path:
 
 def download_vortex(directory: Path, version: str | None = None) -> Path:
     """
-    Download the latest Vortex setup executable from GitHub releases.
-    
+    Download the Vortex setup executable from GitHub releases.
+
     Fetches the latest release tag from the Nexus-Mods/Vortex repository,
     constructs the download URL for the Windows installer, and saves it
     to the specified directory with a filename formatted as:
     vortex-setup-{tag_version}.exe
-    
-    Parameters:
-        directory (Path): Target directory for saving the downloaded file
-        version (str, optional): Specific version to download. If None, fetches latest
-        
-    Returns:
-        Path: Absolute path to the downloaded Vortex setup executable
-        
-    Raises:
-        requests.exceptions.RequestException: If API request fails or network error occurs
-        ValueError: If required release information is missing from the API response
+
+    Parameters
+    ----------
+    directory : Path
+        Target directory for saving the downloaded file.
+    version : str | None, optional
+        Specific version to download. If None, fetches the latest release
+        (default: None).
+
+    Returns
+    -------
+    Path
+        Absolute path to the downloaded Vortex setup executable.
+
+    Raises
+    ------
+    requests.exceptions.RequestException
+        If API request fails or network error occurs.
+    ValueError
+        If required release information is missing from the API response.
     """
     if version is None:
         logging.info("Fetching latest Vortex release from GitHub...")
@@ -528,7 +711,28 @@ def download_vortex(directory: Path, version: str | None = None) -> Path:
     return path
 
 def install_program(wine_command: list[str], installer_path: Path, bottle_name: str = "Vortex") -> subprocess.CompletedProcess[str]:
-    """Installs an application using WINE or Bottles."""
+    """
+    Install an application using WINE or Bottles, then delete the installer.
+
+    Parameters
+    ----------
+    wine_command : list[str]
+        The wine or bottles command list to use.
+    installer_path : Path
+        Path to the installer executable.
+    bottle_name : str, optional
+        Name of the bottle to install into (default: "Vortex").
+
+    Returns
+    -------
+    subprocess.CompletedProcess[str]
+        Result of the installer execution.
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If the installer exits non-zero.
+    """
     if using_bottles(wine_command):
         result = run(wine_command + ["run", "-b", bottle_name, "-e", str(installer_path)], check=True)
     else:
@@ -538,14 +742,24 @@ def install_program(wine_command: list[str], installer_path: Path, bottle_name: 
 
 def fix_bottles_permissions() -> None:
     """
-    Configure Bottles application permissions by granting filesystem access to Steam and Heroic directories.
-    
+    Grant the Bottles flatpak access to Steam and Heroic directories.
+
     This function executes flatpak override commands to allow Bottles to access:
+
     1. Steam's xdg-data directory for game configuration files
     2. Heroic Games directory for game installations
-    
-    The overrides are necessary for Bottles to properly access game data when running Windows applications
-    through the Linux environment.
+
+    The overrides are necessary for Bottles to properly access game data when
+    running Windows applications through the Linux environment.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If a flatpak override command exits non-zero.
     """
     run(["flatpak", "override", "--user", BOTTLES_PACKAGE, "--filesystem=xdg-data/Steam"], check=True)
     run(["flatpak", "override", "--user", BOTTLES_PACKAGE, "--filesystem=~/Games/Heroic"], check=True)
@@ -557,9 +771,19 @@ def find_duplicate_games(
     """
     Detect games that appear in **both** the Steam and GOG libraries.
 
-    Returns a mapping from the canonical `game_id` (e.g. “skyrimse”) to
-    a tuple `(steam_app_id, gog_app_id)`.  Either element may be
-    ``None`` if the game is present on only one platform.
+    Parameters
+    ----------
+    steam_games : dict[str, InstalledGame]
+        Mapping of Steam app-id to installed game.
+    gog_games : dict[str, InstalledGame]
+        Mapping of GOG app-id to installed game.
+
+    Returns
+    -------
+    dict[str, tuple[Optional[str], Optional[str]]]
+        Mapping from the canonical `game_id` (e.g. "skyrimse") to a tuple
+        `(steam_app_id, gog_app_id)`.  Either element may be `None` if the
+        game is present on only one platform.
     """
 
     # ----------------------------------------------------------
@@ -677,17 +901,45 @@ def handle_duplicates(
     return steam_games, gog_games, bottle_names
 
 def get_bottles_path(bottles_command: list[str]) -> Path:
-    """Retrieve the path to the bottles directory."""
+    """
+    Retrieve the path to the bottles directory.
+
+    Parameters
+    ----------
+    bottles_command : list[str]
+        Base command to interact with Bottles.
+
+    Returns
+    -------
+    Path
+        Absolute path to the directory containing all bottles.
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If the bottles info command exits non-zero.
+    """
     return Path(run(bottles_command + ["info", "bottles-path"], check=True, capture_output=True, text=True).stdout.strip())
 
 @deprecated('xdg-mime seems to work despite the error message.')
 def fix_plasma6() -> subprocess.CompletedProcess | None:
     """
-    Fix known issue with `xdg-mime default` on KDE Plasma 6 systems by creating a symlink for qtpaths.
+    Fix `xdg-mime default` on KDE Plasma 6 by symlinking qtpaths.
+
+    Creates a symlink from /usr/bin/qtpaths6 to /usr/local/bin/qtpaths when
+    xdg-mime is present, qtpaths is missing, and qtpaths6 exists.
+
     See: https://gitlab.freedesktop.org/xdg/xdg-utils/-/issues/283
-    
-    :return:
-    :rtype: CompletedProcess | None
+
+    Returns
+    -------
+    subprocess.CompletedProcess | None
+        Result of the symlink command, or None if no fix was needed.
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If the symlink command exits non-zero.
     """
     if shutil.which("xdg-mime") is not None and shutil.which("qtpaths") is None and Path("/usr/bin/qtpaths6").exists() and not Path("/usr/local/bin/qtpaths").exists():
         return run(["sudo", "ln", "-s", "/usr/bin/qtpaths6", "/usr/local/bin/qtpaths"], check=True)
