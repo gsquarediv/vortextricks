@@ -7,7 +7,7 @@ The module defines two main helpers:
 * ``_safe_symlink(target, link_path)`` - Creates or replaces a symlink
   safely, handling existing files or directories.
 * ``create_game_symlinks(game, vortex_prefix, game_prefix)`` - For a
-  given :class:`InstalledGame` instance, this function creates symlinks that
+  given ``InstalledGame`` instance, this function creates symlinks that
   point the Vortex WINE installation to the corresponding save-game
   (``My Games``) and ``AppData`` directories inside the Proton
   prefix. It ensures the destination directories exist and logs
@@ -43,7 +43,24 @@ logger.propagate = False
 
 
 def _safe_symlink(target: Path, link_path: Path) -> None:
-    """Create or replace a symlink safely."""
+    """
+    Create or replace a symlink safely.
+
+    Existing files, symlinks, and directories at the link path are removed
+    before the new symlink is created; parent directories are created as
+    needed.
+
+    Parameters
+    ----------
+    target : Path
+        The existing file or directory the symlink should point to.
+    link_path : Path
+        The path at which to create the symlink.
+
+    Returns
+    -------
+    None
+    """
     if link_path.exists() or link_path.is_symlink():
         if link_path.is_dir() and not link_path.is_symlink():
             shutil.rmtree(link_path)
@@ -72,9 +89,18 @@ def create_game_symlinks(
         Path to the root of the Vortex Wine prefix.
     game_prefix : Path
         Path to the game's Proton prefix.
-    vortex_user : str, optional
+    vortex_user : str or None, optional
         The username under which Vortex runs. Defaults to the current
         environment user.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    RuntimeError
+        If the Vortex user cannot be ascertained.
     """
     if vortex_user is None:
         raise RuntimeError("Could not ascertain Vortex user")
@@ -111,14 +137,19 @@ def create_game_symlinks(
 
 def get_sorting_title(gog_id: str, locale: str = "en-US") -> str | None:
     """
-    Fetches the sorting_title for a given GOG ID from the GamesDB endpoint.
+    Fetch the sorting_title for a given GOG ID from the GamesDB endpoint.
 
-    Args:
-        gog_id (str): The external GOG release ID (e.g. "1454587428").
-        locale (str): Locale for sorting_title (default "en-US").
+    Parameters
+    ----------
+    gog_id : str
+        The external GOG release ID (e.g. "1454587428").
+    locale : str, optional
+        Locale for sorting_title (default "en-US").
 
-    Returns:
-        str | None: The sorting title if found, otherwise None.
+    Returns
+    -------
+    str | None
+        The sorting title if found, otherwise None.
     """
     url = f"https://gamesdb.gog.com/platforms/gog/external_releases/{gog_id}"
     try:

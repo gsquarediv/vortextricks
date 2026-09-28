@@ -1,26 +1,23 @@
 """
-gameinfo
-
-Provides data structures and helper functions for handling game metadata.
+Data structures and helper functions for handling game metadata.
 
 This module defines:
 
-* **GameInfo** - a dataclass that stores all known identifiers for a single
+* ``GameInfo`` - a dataclass that stores all known identifiers for a single
   game (Steam app IDs, GOG ID, registry entries, etc.).
 
-* **GameRegistry** - a lightweight container that indexes a list of
-  `GameInfo` objects by Steam and GOG identifiers for fast lookup.
+* ``GameRegistry`` - a lightweight container that indexes a list of
+  ``GameInfo`` objects by Steam and GOG identifiers for fast lookup.
 
-* **games_to_json** - serialises a list of `GameInfo` objects into a pretty-printed
-  JSON string.
+* ``games_to_json`` - serialises a list of ``GameInfo`` objects into a
+  pretty-printed JSON string.
 
-* **load_games_from_json** - validates a JSON string against
-  :file:`gameinfo.schema.json` and returns a populated `GameRegistry`.
+* ``load_games_from_json`` - validates a JSON string against
+  ``gameinfo.schema.json`` and returns a populated ``GameRegistry``.
 
 The JSON schema is located in the same directory as this module and
 ensures that the data conforms to the expected structure before it is used
 within the application.
-
 """
 
 from __future__ import annotations
@@ -40,7 +37,30 @@ JSON_INDENT = 4
 
 @dataclass
 class GameInfo:
-    """Container for all known identifiers for a single game."""
+    """
+    Container for all known identifiers for a single game.
+
+    Attributes
+    ----------
+    name : str
+        Human-readable game name.
+    game_id : str
+        Canonical identifier for the game (e.g. "skyrimse").
+    steamapp_ids : list[str]
+        Steam app IDs associated with the game.
+    gog_id : str | None
+        GOG release ID, if the game is known on GOG.
+    ms_id : str | None
+        Microsoft Store ID, if the game is known there.
+    epic_id : str | None
+        Epic Games Store ID, if the game is known there.
+    registry_entries : dict[str, str]
+        Registry key paths mapped to the value names Vortex expects.
+    override_mygames : str | None
+        Optional override for the "My Games" folder name used for symlinks.
+    override_appdata : str | None
+        Optional override for the AppData folder name used for symlinks.
+    """
     name: str
     game_id: str
     steamapp_ids: list[str] = field(default_factory=list[str])
@@ -55,21 +75,30 @@ class GameInfo:
 
 @dataclass
 class InstalledGame(GameInfo):
-    """Represents an installed game, combining game information with its installation path.
-    
-    Extends GameInfo with the game's installation directory path for Vortex management.
-    
-    Attributes:
-        game_path: The Path object pointing to the game's installation directory.
+    """
+    Represents an installed game, combining game information with its installation path.
+
+    Extends GameInfo with the game's installation directory path for Vortex
+    management.  All attributes of GameInfo are inherited.
+
+    Attributes
+    ----------
+    game_path : Path
+        The Path object pointing to the game's installation directory.
     """
     game_path: Path = field(default_factory=Path)
 
 class GameRegistry:
     """
-    Holds a collection of GameInfo objects and provides fast lookup by
-    Steam app ID or GOG ID.  The constructor builds two dictionaries:
-    one mapping each Steam ID to its GameInfo, and another mapping each
-    GOG ID to its GameInfo.
+    Holds a collection of GameInfo objects with fast lookup by store ID.
+
+    The constructor builds two dictionaries: one mapping each Steam ID to
+    its GameInfo, and another mapping each GOG ID to its GameInfo.
+
+    Parameters
+    ----------
+    games : list[GameInfo]
+        The games to index by Steam app ID and GOG ID.
     """
     def __init__(self, games: list[GameInfo]):
         self._games = games
@@ -85,38 +114,72 @@ class GameRegistry:
     def get_game_by_id(self, identifier: str) -> Optional[GameInfo]:
         """
         Return the GameInfo for the given Steam app ID or GOG ID.
-        If the ID is unknown, returns None.
+
+        Parameters
+        ----------
+        identifier : str
+            A Steam app ID or GOG release ID.
+
+        Returns
+        -------
+        GameInfo | None
+            The matching game, or None if the ID is unknown.
         """
         return self._steam_index.get(identifier) or self._gog_index.get(identifier)
 
     @property
     def games(self) -> list[GameInfo]:
-        """Return the raw list of games."""
+        """
+        The raw list of games held by this registry.
+
+        Returns
+        -------
+        list[GameInfo]
+            The underlying, unindexed list of games.
+        """
         return self._games
 
 def games_to_json(games: list[GameInfo]) -> str:
     """
     Serialize a list of GameInfo objects to a JSON-formatted string.
-    
+
     Converts each GameInfo object to a dictionary using its __dict__ attribute,
     then formats the output as a JSON array with indentation for readability.
-    
-    Parameters:
-        games (list[GameInfo]): List of GameInfo objects to be serialized.
-        
-    Returns:
-        str: JSON-formatted string representing the list of game information.
-        
-    Note:
+
+    Parameters
+    ----------
+    games : list[GameInfo]
+        List of GameInfo objects to be serialized.
+
+    Returns
+    -------
+    str
+        JSON-formatted string representing the list of game information.
         The output conforms to the structure defined in gameinfo.schema.json.
     """
     return json.dumps(games, default=lambda o: o.__dict__, indent=JSON_INDENT)
 
 def load_games_from_json(data: str) -> GameRegistry:
     """
-    Load a JSON string containing a list of games and return a GameRegistry
-    instance for fast lookup.  Each object in the JSON is converted to a
-    GameInfo.
+    Load a JSON string of games and return a GameRegistry for fast lookup.
+
+    Each object in the JSON is validated against gameinfo.schema.json and
+    converted to a GameInfo.
+
+    Parameters
+    ----------
+    data : str
+        JSON string containing a list of game objects.
+
+    Returns
+    -------
+    GameRegistry
+        Registry populated with the validated GameInfo objects.
+
+    Raises
+    ------
+    ValueError
+        If the JSON data does not conform to gameinfo.schema.json.
     """
     schema_path = Path(__file__).with_name("gameinfo.schema.json")
     with schema_path.open("r", encoding="utf-8") as file:
