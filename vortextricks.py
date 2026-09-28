@@ -22,7 +22,6 @@ The module relies on several helper modules:
 - `requests` - for downloading the Vortex installer.
 """
 
-from dataclasses import dataclass, field
 import json
 import logging
 import os
@@ -32,7 +31,7 @@ import tempfile
 import urllib.parse
 from pathlib import Path, PureWindowsPath, PurePosixPath
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 from warnings import deprecated
 
 import protontricks
@@ -82,9 +81,9 @@ def main() -> int:
     """
 
     steam_path, steam_root = protontricks.find_steam_path()
-    steam_games = {}
+    steam_games: dict[str, InstalledGame] = {}
     heroic_path = find_heroic()
-    gog_games = {}
+    gog_games: dict[str, InstalledGame] = {}
 
     # ----------------------------------------------------------------------------------------------------- #
     # 1. Gather installed games
@@ -236,7 +235,7 @@ def is_existing_bottle(bottles_command: list[str], bottle_name: str = "Vortex") 
     Returns:
         bool: True if the bottle exists, False otherwise
     """
-    bottles = json.loads(run(bottles_command + ["--json", "list", "bottles"], check=True, capture_output=True).stdout)
+    bottles: dict[str, Any] = json.loads(run(bottles_command + ["--json", "list", "bottles"], check=True, capture_output=True).stdout)
     bottle = bottles.get(bottle_name)
     if bottle is not None:
         logging.debug(json.dumps(bottle, indent=JSON_INDENT))
@@ -306,7 +305,7 @@ def find_heroic() -> Path | None:
     managed through the Heroic launcher.
     """
     path = Path.home() / ".var/app/com.heroicgameslauncher.hgl/config/heroic"
-    if Path.exists(path):
+    if path.exists():
         return path
 
 def create_wine_prefix(proton_path: str | None = None) -> subprocess.CompletedProcess:
@@ -515,8 +514,10 @@ def download_vortex(directory: Path, version: str | None = None) -> Path:
         api_url = "https://api.github.com/repos/Nexus-Mods/Vortex/releases/latest"
         response = requests.get(api_url, timeout=10)
         response.raise_for_status()
-        release = response.json()
+        release: dict[str, Any] = response.json()
         tag_version = release.get("tag_name")
+        if not isinstance(tag_version, str):
+            raise ValueError("GitHub API response is missing required 'tag_name' field")
         logging.info("Latest tag: %s", tag_version)
     else:
         tag_version = version
@@ -526,7 +527,7 @@ def download_vortex(directory: Path, version: str | None = None) -> Path:
     download(download_url, path)
     return path
 
-def install_program(wine_command: list[str], installer_path: Path, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
+def install_program(wine_command: list[str], installer_path: Path, bottle_name: str = "Vortex") -> subprocess.CompletedProcess[str]:
     """Installs an application using WINE or Bottles."""
     if using_bottles(wine_command):
         result = run(wine_command + ["run", "-b", bottle_name, "-e", str(installer_path)], check=True)
