@@ -26,7 +26,7 @@ within the application.
 from __future__ import annotations
 from dataclasses import dataclass, field
 import json
-import pathlib
+from pathlib import Path
 from typing import Optional
 
 from jsonschema import Draft202012Validator, ValidationError
@@ -52,6 +52,17 @@ class GameInfo:
     # symlink-specific fields
     override_mygames: Optional[str] = None
     override_appdata: Optional[str] = None
+
+@dataclass
+class InstalledGame(GameInfo):
+    """Represents an installed game, combining game information with its installation path.
+    
+    Extends GameInfo with the game's installation directory path for Vortex management.
+    
+    Attributes:
+        game_path: The Path object pointing to the game's installation directory.
+    """
+    game_path: Path = field(default_factory=Path)
 
 class GameRegistry:
     """
@@ -107,7 +118,7 @@ def load_games_from_json(data: str) -> GameRegistry:
     instance for fast lookup.  Each object in the JSON is converted to a
     GameInfo.
     """
-    schema_path = pathlib.Path(__file__).with_name("gameinfo.schema.json")
+    schema_path = Path(__file__).with_name("gameinfo.schema.json")
     with schema_path.open("r", encoding="utf-8") as file:
         schema = json.load(file)
     Draft202012Validator.check_schema(schema)

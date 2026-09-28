@@ -29,7 +29,7 @@ from pathlib import Path
 
 import requests
 
-from vortextricks import InstalledGame
+from gameinfo import InstalledGame
 
 # Configure module logger
 logger = logging.getLogger(__name__)
