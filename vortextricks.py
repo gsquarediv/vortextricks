@@ -710,7 +710,7 @@ def download_vortex(directory: Path, version: str | None = None) -> Path:
     download(download_url, path)
     return path
 
-def install_program(wine_command: list[str], installer_path: Path, bottle_name: str = "Vortex") -> subprocess.CompletedProcess[str]:
+def install_program(wine_command: list[str], installer_path: Path, bottle_name: str = "Vortex") -> subprocess.CompletedProcess:
     """
     Install an application using WINE or Bottles, then delete the installer.
 
@@ -725,7 +725,7 @@ def install_program(wine_command: list[str], installer_path: Path, bottle_name: 
 
     Returns
     -------
-    subprocess.CompletedProcess[str]
+    subprocess.CompletedProcess
         Result of the installer execution.
 
     Raises
